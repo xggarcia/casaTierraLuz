@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.local
+CONTEXT.md
+.claude/
+BASE_DE_DATOS.md
