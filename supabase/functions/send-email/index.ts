@@ -16,7 +16,7 @@ function layout(content: string): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NARA CAMPUS</title>
+<title>Casa Tierra Luz</title>
 </head>
 <body style="margin:0;padding:0;background:#0b0d10;font-family:Arial,Helvetica,sans-serif;color:#f1f1ec;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0d10;padding:40px 16px;">
@@ -32,7 +32,7 @@ function layout(content: string): string {
       </td></tr>
       <tr><td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.08);">
         <p style="margin:0;font-size:12px;color:#7a8190;">
-          <a href="${SITE_URL()}" style="color:#FA7052;text-decoration:none;">naracampus.es</a>
+          <a href="${SITE_URL()}" style="color:#FA7052;text-decoration:none;">casatierraluz.es</a>
         </p>
       </td></tr>
     </table>

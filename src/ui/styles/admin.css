@@ -1,0 +1,608 @@
+/* ============================================================
+   CASA TIERRA LUZ — Admin Panel Styles
+   Requires tokens from theme.css
+   ============================================================ */
+
+/* ---- Page shell ---- */
+
+.adm-page {
+  background-color: var(--c-bg);
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* ---- Masthead (title + tab strip) ---- */
+
+.adm-masthead {
+  background-color: var(--c-surface);
+  border-bottom: 1px solid oklch(0.86 0.015 72);
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
+}
+
+.adm-masthead__inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+}
+
+.adm-masthead__title {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  padding: var(--space-5) 0 var(--space-4);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Tab strip ---- */
+
+.adm-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+.adm-tab {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--c-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--space-3) var(--space-5);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 150ms, border-color 150ms;
+}
+
+.adm-tab:hover:not(.adm-tab--active) {
+  color: var(--c-ink);
+}
+
+.adm-tab--active {
+  color: var(--c-accent);
+  border-bottom-color: var(--c-accent);
+}
+
+/* ---- Content area ---- */
+
+.adm-content {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: var(--space-8);
+}
+
+/* ---- Section header ---- */
+
+.adm-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+
+.adm-section-title {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Buttons ---- */
+
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color           150ms,
+    border-color    150ms,
+    opacity         150ms;
+  white-space: nowrap;
+  padding: var(--space-2) var(--space-4);
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+
+.adm-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-btn--primary {
+  background-color: var(--c-accent);
+  color: var(--c-on-accent);
+  border-color: var(--c-accent);
+}
+
+.adm-btn--primary:not(:disabled):hover {
+  background-color: oklch(0.54 0.16 42);
+  border-color: oklch(0.54 0.16 42);
+}
+
+.adm-btn--ghost {
+  background-color: transparent;
+  color: var(--c-ink);
+  border-color: oklch(0.78 0.015 72);
+}
+
+.adm-btn--ghost:not(:disabled):hover {
+  background-color: var(--c-surface);
+  border-color: var(--c-ink);
+}
+
+.adm-btn--danger {
+  background-color: transparent;
+  color: oklch(0.44 0.14 25);
+  border-color: oklch(0.80 0.06 25);
+}
+
+.adm-btn--danger:not(:disabled):hover {
+  background-color: oklch(0.97 0.02 25);
+  border-color: oklch(0.58 0.10 25);
+}
+
+.adm-btn--sm {
+  font-size: 0.75rem;
+  padding: calc(var(--space-1) + 2px) var(--space-3);
+}
+
+/* ---- Data table ---- */
+
+.adm-table-wrap {
+  overflow-x: auto;
+  border: 1px solid oklch(0.88 0.012 72);
+  border-radius: var(--radius-md);
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.adm-table thead tr {
+  background-color: var(--c-surface);
+}
+
+.adm-table th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid oklch(0.88 0.012 72);
+}
+
+.adm-table td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--c-ink);
+  border-bottom: 1px solid oklch(0.93 0.008 72);
+  vertical-align: middle;
+}
+
+.adm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.adm-table tbody tr:hover td {
+  background-color: oklch(0.97 0.008 76);
+}
+
+.adm-table__id {
+  color: var(--c-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  width: 3rem;
+}
+
+.adm-table__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+/* ---- Status badge ---- */
+
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.adm-badge--active {
+  background-color: oklch(0.90 0.05 145);
+  color: oklch(0.28 0.10 145);
+}
+
+.adm-badge--inactive {
+  background-color: oklch(0.93 0.008 72);
+  color: var(--c-muted);
+}
+
+/* ---- Color swatch (TabColors) ---- */
+
+.adm-color-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.adm-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid oklch(0.20 0.025 52 / 0.15);
+}
+
+/* ---- Back nav ---- */
+
+.adm-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: var(--space-5);
+  transition: color 150ms;
+}
+
+.adm-back-btn:hover {
+  color: var(--c-ink);
+}
+
+.adm-back-btn__arrow {
+  display: inline-block;
+  transition: transform 150ms var(--ease-out-expo);
+}
+
+.adm-back-btn:hover .adm-back-btn__arrow {
+  transform: translateX(-3px);
+}
+
+/* ---- Edit panel ---- */
+
+.adm-edit-header {
+  margin-bottom: var(--space-6);
+}
+
+.adm-edit-title {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.adm-edit-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.adm-edit-panel--with-variants {
+  grid-template-columns: 1fr 1fr;
+}
+
+.adm-panel-card {
+  background-color: var(--c-surface);
+  border: 1px solid oklch(0.88 0.012 72);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.adm-panel-card__title {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin: 0 0 var(--space-5);
+}
+
+/* ---- Forms ---- */
+
+.adm-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.adm-label {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-ink);
+  display: block;
+}
+
+.adm-label-helper {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--c-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+.adm-input,
+.adm-textarea,
+.adm-select {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--c-ink);
+  background-color: var(--c-bg);
+  border: 1px solid oklch(0.80 0.015 72);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+  -webkit-appearance: none;
+}
+
+.adm-input::placeholder,
+.adm-textarea::placeholder {
+  color: oklch(0.70 0.010 72);
+}
+
+.adm-input:focus,
+.adm-textarea:focus,
+.adm-select:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 2px oklch(0.46 0.16 42 / 0.12);
+}
+
+.adm-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+}
+
+.adm-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23867065' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+/* Checkbox field */
+.adm-checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.adm-checkbox-field input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--c-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.adm-checkbox-field .adm-label {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* ---- Form footer ---- */
+
+.adm-form-footer {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ---- Alert ---- */
+
+.adm-alert {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+}
+
+.adm-alert--error {
+  background-color: oklch(0.97 0.02 25);
+  color: oklch(0.40 0.14 25);
+  border: 1px solid oklch(0.87 0.05 25);
+}
+
+/* ---- Empty state ---- */
+
+.adm-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-8);
+  color: var(--c-muted);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+/* ---- Loading text ---- */
+
+.adm-loading {
+  text-align: center;
+  padding: var(--space-6) var(--space-8);
+  color: var(--c-muted);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+/* ---- Skeleton rows ---- */
+
+.adm-sk-row td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid oklch(0.93 0.008 72);
+}
+
+.adm-sk-cell {
+  height: 0.875rem;
+  border-radius: 2px;
+  background-color: oklch(0.88 0.015 72);
+  animation: adm-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes adm-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ---- Nested table (variants inside edit panel) ---- */
+
+.adm-table--nested th {
+  font-size: 0.625rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.adm-table--nested td {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+}
+
+/* ---- Variant subsection header ---- */
+
+.adm-variants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Inline variant form ---- */
+
+.adm-inline-form {
+  background-color: oklch(0.98 0.006 76);
+  border: 1px solid oklch(0.88 0.012 72);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.adm-inline-form-title {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+  margin: 0 0 var(--space-4);
+}
+
+.adm-inline-form .adm-form {
+  gap: var(--space-3);
+}
+
+/* ---- Create card (TabScents, TabColors) ---- */
+
+.adm-create-card {
+  background-color: var(--c-surface);
+  border: 1px solid oklch(0.88 0.012 72);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-8);
+  max-width: 480px;
+}
+
+.adm-create-card__title {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin: 0 0 var(--space-4);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 760px) {
+  .adm-edit-panel--with-variants {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .adm-content,
+  .adm-masthead__inner {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .adm-table th,
+  .adm-table td {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .adm-table__actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-btn,
+  .adm-tab,
+  .adm-input,
+  .adm-textarea,
+  .adm-select,
+  .adm-back-btn,
+  .adm-back-btn__arrow {
+    transition: none !important;
+  }
+
+  .adm-sk-cell {
+    animation: none;
+    opacity: 0.6;
+  }
+}

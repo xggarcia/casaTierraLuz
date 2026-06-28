@@ -1,0 +1,74 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f5f5f5;
+}
+
+a { color: #1558b0; }
+
+/* Barra de navegacion superior */
+.ui-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  background: #ffffff;
+  border-bottom: 2px solid #888;
+}
+.ui-header a,
+.ui-header button,
+.ui-header span { font-size: 14px; }
+.ui-header .ui-spacer { flex: 1; }   /* empuja el bloque de usuario a la derecha */
+
+/* Contenedor de cada pagina */
+.ui-page {
+  max-width: 800px;
+  margin: 24px auto;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+}
+.ui-page h1 { font-size: 22px; margin: 0 0 16px; }
+
+/* Botones y campos genericos */
+button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid #888;
+  background: #eee;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.5; cursor: default; }
+
+input, select {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid #888;
+  background: #fff;
+}
+
+/* Formularios */
+.ui-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; }
+.ui-field { display: flex; flex-direction: column; gap: 4px; }
+.ui-field label { font-size: 13px; font-weight: 600; }
+.ui-error { color: #b00020; }
+
+/* Listas */
+.ui-list { list-style: none; margin: 0; padding: 0; }
+.ui-list li { padding: 10px 12px; border: 1px solid #ddd; margin-bottom: 8px; }
+
+/* Tablas */
+.ui-table { width: 100%; border-collapse: collapse; }
+.ui-table th, .ui-table td {
+  border: 1px solid #bbb;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 14px;
+}
+.ui-table th { background: #eee; }

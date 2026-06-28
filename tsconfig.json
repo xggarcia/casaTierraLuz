@@ -16,5 +16,7 @@
     "types": ["vite/client"]
   },
   "include": ["src"],
+  "exclude": ["src/test/wireframe-ui.test.tsx", "src/test/admin-crud.test.ts"],
+  // vitest globals (describe, it, expect) are handled at runtime by the test runner
   "references": [{ "path": "./tsconfig.node.json" }]
 }

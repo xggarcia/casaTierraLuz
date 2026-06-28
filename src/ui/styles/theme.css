@@ -1,0 +1,159 @@
+/* ============================================================
+   CASA TIERRA LUZ — Design Tokens + Global Base
+   Palette: warm sand primary + deep sienna accent
+   Seed: oklch(0.88 0.030 76), hue 76
+   ============================================================ */
+
+:root {
+  /* --- Colors --- */
+  --c-primary:    oklch(0.88 0.030 76);   /* warm sand — hero, brand sections */
+  --c-accent:     oklch(0.46 0.16 42);    /* deep sienna — CTAs (≥4.9:1 vs white) */
+  --c-bg:         oklch(0.99 0.000 0);    /* neutral white — product areas */
+  --c-surface:    oklch(0.94 0.018 76);   /* warm sand tint — cards, panels */
+  --c-ink:        oklch(0.20 0.025 52);   /* warm near-black — body text (≥14:1 vs bg) */
+  --c-muted:      oklch(0.46 0.018 52);   /* warm mid-brown — secondary text (≥5:1 vs bg) */
+  --c-on-primary: oklch(0.94 0.010 72);   /* warm near-white — text on dark surfaces (footer) */
+  --c-on-accent:  oklch(0.99 0.000 0);    /* near-white — text on sienna (≥4.9:1) */
+  --c-footer:     oklch(0.18 0.030 52);   /* deep warm brown — footer */
+
+  /* --- Typography --- */
+  --font-display: 'Libre Baskerville', Georgia, serif;
+  --font-body:    'Barlow', system-ui, Arial, sans-serif;
+
+  /* --- Type scale --- */
+  --text-xs:      0.75rem;
+  --text-sm:      0.875rem;
+  --text-base:    1rem;
+  --text-lg:      1.125rem;
+  --text-xl:      1.25rem;
+  --text-2xl:     1.5rem;
+  --text-3xl:     clamp(1.75rem, 3vw, 2.25rem);
+  --text-4xl:     clamp(2.25rem, 5vw, 3.5rem);
+  --text-display: clamp(3.25rem, 8vw, 5.75rem);
+
+  /* --- Spacing --- */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* --- Radius --- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* --- Motion --- */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-fast:  180ms;
+  --dur-base:  340ms;
+  --dur-slow:  600ms;
+
+  /* --- Layout --- */
+  --header-height: 60px;
+  --container-max: 1280px;
+
+  /* --- Z-index --- */
+  --z-dropdown:       100;
+  --z-sticky:         200;
+  --z-modal-backdrop: 300;
+  --z-modal:          400;
+  --z-toast:          500;
+  --z-tooltip:        600;
+}
+
+/* --- Global base --- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--c-ink);
+  background-color: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- App layout --- */
+.app-body {
+  padding-top: var(--header-height);
+}
+
+/* ============================================================
+   SITE HEADER (global — applies on all routes)
+   ============================================================ */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-8);
+  transition:
+    background-color var(--dur-base) var(--ease-out-expo),
+    box-shadow      var(--dur-base) var(--ease-out-expo),
+    color           var(--dur-base) var(--ease-out-expo);
+}
+
+.site-header--transparent {
+  background-color: transparent;
+  color: var(--c-ink);
+}
+
+.site-header--solid {
+  background-color: var(--c-bg);
+  color: var(--c-ink);
+  box-shadow: 0 1px 0 oklch(0.20 0.025 52 / 0.08);
+}
+
+.site-header__logo {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.site-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.site-header__link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  color: inherit;
+  letter-spacing: 0.02em;
+  transition: opacity var(--dur-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: inherit;
+}
+
+.site-header__link:hover {
+  opacity: 0.65;
+}
+
+/* --- Reduced motion overrides --- */
+@media (prefers-reduced-motion: reduce) {
+  .site-header { transition: none; }
+  .site-header__link { transition: none; }
+}

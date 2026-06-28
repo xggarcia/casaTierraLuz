@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-28T00:00:00Z",
+  "title": "Design System: Casa Tierra Luz",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Warm Sand",
+        "canonical": "oklch(0.88 0.030 76)",
+        "tonalRamp": [
+          "oklch(0.28 0.025 76)",
+          "oklch(0.40 0.028 76)",
+          "oklch(0.54 0.030 76)",
+          "oklch(0.66 0.030 76)",
+          "oklch(0.76 0.030 76)",
+          "oklch(0.84 0.030 76)",
+          "oklch(0.88 0.030 76)",
+          "oklch(0.95 0.015 76)"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Deep Sienna",
+        "canonical": "oklch(0.46 0.16 42)",
+        "tonalRamp": [
+          "oklch(0.18 0.12 42)",
+          "oklch(0.28 0.14 42)",
+          "oklch(0.36 0.15 42)",
+          "oklch(0.46 0.16 42)",
+          "oklch(0.58 0.16 42)",
+          "oklch(0.70 0.14 42)",
+          "oklch(0.82 0.10 42)",
+          "oklch(0.94 0.05 42)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Neutral White",
+        "canonical": "oklch(0.99 0.000 0)",
+        "tonalRamp": [
+          "oklch(0.55 0.000 0)",
+          "oklch(0.65 0.000 0)",
+          "oklch(0.75 0.000 0)",
+          "oklch(0.83 0.000 0)",
+          "oklch(0.89 0.000 0)",
+          "oklch(0.93 0.000 0)",
+          "oklch(0.96 0.000 0)",
+          "oklch(0.99 0.000 0)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Warm Sand Tint",
+        "canonical": "oklch(0.94 0.018 76)",
+        "tonalRamp": [
+          "oklch(0.54 0.018 76)",
+          "oklch(0.64 0.018 76)",
+          "oklch(0.74 0.018 76)",
+          "oklch(0.82 0.018 76)",
+          "oklch(0.88 0.018 76)",
+          "oklch(0.91 0.018 76)",
+          "oklch(0.94 0.018 76)",
+          "oklch(0.97 0.010 76)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Warm Near-Black",
+        "canonical": "oklch(0.20 0.025 52)",
+        "tonalRamp": [
+          "oklch(0.10 0.020 52)",
+          "oklch(0.14 0.022 52)",
+          "oklch(0.20 0.025 52)",
+          "oklch(0.30 0.025 52)",
+          "oklch(0.42 0.022 52)",
+          "oklch(0.56 0.020 52)",
+          "oklch(0.72 0.015 52)",
+          "oklch(0.88 0.008 52)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Warm Mid-Brown",
+        "canonical": "oklch(0.46 0.018 52)",
+        "tonalRamp": [
+          "oklch(0.20 0.016 52)",
+          "oklch(0.30 0.017 52)",
+          "oklch(0.38 0.018 52)",
+          "oklch(0.46 0.018 52)",
+          "oklch(0.56 0.017 52)",
+          "oklch(0.67 0.015 52)",
+          "oklch(0.79 0.010 52)",
+          "oklch(0.91 0.005 52)"
+        ]
+      },
+      "on-primary": {
+        "role": "neutral",
+        "displayName": "Warm Near-White",
+        "canonical": "oklch(0.94 0.010 72)",
+        "tonalRamp": [
+          "oklch(0.54 0.012 72)",
+          "oklch(0.64 0.011 72)",
+          "oklch(0.74 0.011 72)",
+          "oklch(0.82 0.011 72)",
+          "oklch(0.88 0.010 72)",
+          "oklch(0.91 0.010 72)",
+          "oklch(0.94 0.010 72)",
+          "oklch(0.97 0.006 72)"
+        ]
+      },
+      "footer": {
+        "role": "neutral",
+        "displayName": "Deep Warm Brown",
+        "canonical": "oklch(0.18 0.030 52)",
+        "tonalRamp": [
+          "oklch(0.08 0.022 52)",
+          "oklch(0.12 0.026 52)",
+          "oklch(0.18 0.030 52)",
+          "oklch(0.26 0.030 52)",
+          "oklch(0.36 0.028 52)",
+          "oklch(0.50 0.025 52)",
+          "oklch(0.66 0.020 52)",
+          "oklch(0.82 0.012 52)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headlines only. 'Cada llama, una historia.' Never for anything below H1 level."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, product detail names. Still in the serif; still with presence."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Subsection titles, large UI labels, product card names on statement cards."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Product descriptions, marketing copy, long-form prose. 65-75ch max width."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "CTAs, navigation links, variant labels, prices. Used sparingly — not on every section."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-hover",
+        "value": "0 8px 28px oklch(0.20 0.025 52 / 0.09)",
+        "purpose": "Product and catalog cards on :hover only. Warm-dark diffuse glow."
+      },
+      {
+        "name": "header-solid",
+        "value": "0 1px 0 oklch(0.20 0.025 52 / 0.08)",
+        "purpose": "Site header bottom hairline in solid state (scrolled, non-hero pages)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Header transitions, featured link arrow. Strong ease-out for state changes."
+      },
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Button hover, card hover, image scale. Standard interactive feedback."
+      },
+      {
+        "name": "dur-fast",
+        "value": "180ms",
+        "purpose": "Hover states, focus rings, opacity toggles."
+      },
+      {
+        "name": "dur-base",
+        "value": "340ms",
+        "purpose": "Header solid/transparent transition."
+      },
+      {
+        "name": "dur-slow",
+        "value": "600ms",
+        "purpose": "Image scale on card hover."
+      },
+      {
+        "name": "gsap-entrance",
+        "value": "gsap.fromTo(targets, { y: 14-22, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.035-0.1, duration: 0.55-0.8, ease: 'power3.out' })",
+        "purpose": "Page/section entrance via gsap.context(fn, containerRef) + .revert() cleanup. Check prefers-reduced-motion before running."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "380px", "purpose": "Single-column grid; statement card collapses to 1 col" },
+      { "name": "sm", "value": "480px", "purpose": "2-column catalog grid on narrow mobile" },
+      { "name": "md", "value": "600px", "purpose": "Padding reduction; header padding adjusts" },
+      { "name": "tablet", "value": "640px", "purpose": "Catalog grid: 2-col + full-width statement" },
+      { "name": "lg", "value": "900px", "purpose": "PDP: single column; catalog: 3-col + full-width statement" },
+      { "name": "desktop", "value": "960px+", "purpose": "Catalog: 4-col + 2-col statement; PDP: 55/45 two-column sticky" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary CTA Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Deep sienna fill, near-white uppercase label, main purchase and navigation CTA.",
+      "html": "<button class=\"ds-btn-primary\">Añadir al carrito</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; font-family: 'Barlow', system-ui, Arial, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.99 0.000 0); background-color: oklch(0.46 0.16 42); border: none; border-radius: 2px; padding: 1rem 2rem; cursor: pointer; transition: background-color 180ms cubic-bezier(0.25, 1, 0.5, 1), transform 180ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background-color: oklch(0.54 0.16 42); transform: translateY(-2px); } .ds-btn-primary:active { transform: translateY(0); } .ds-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; } .ds-btn-primary:focus-visible { outline: 2px solid oklch(0.46 0.16 42); outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Outline ink, transparent fill. Load more, secondary actions.",
+      "html": "<button class=\"ds-btn-ghost\">Ver 12 más</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; font-family: 'Barlow', system-ui, Arial, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: oklch(0.20 0.025 52); background-color: transparent; border: 1px solid oklch(0.20 0.025 52); border-radius: 2px; padding: 0.75rem 2rem; cursor: pointer; transition: background-color 180ms cubic-bezier(0.25, 1, 0.5, 1), color 180ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-ghost:hover { background-color: oklch(0.20 0.025 52); color: oklch(0.94 0.010 72); } .ds-btn-ghost:focus-visible { outline: 2px solid oklch(0.20 0.025 52); outline-offset: 3px; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "Image-forward catalog card. Portrait 3:4 image, name + desc + price + swatches below.",
+      "html": "<a class=\"ds-card\" href=\"#\">\n  <div class=\"ds-card__image\">\n    <div class=\"ds-card__placeholder\" aria-hidden=\"true\"></div>\n  </div>\n  <div class=\"ds-card__info\">\n    <h2 class=\"ds-card__name\">Vela Ámbar</h2>\n    <p class=\"ds-card__desc\">Aroma cálido, cera natural de soja, mecha de algodón.</p>\n    <div class=\"ds-card__footer\">\n      <span class=\"ds-card__price\">24,90&thinsp;€</span>\n      <ul class=\"ds-card__swatches\" aria-label=\"Variantes\">\n        <li><span class=\"ds-card__swatch\" style=\"background-color:#c8832a\"></span></li>\n        <li><span class=\"ds-card__swatch\" style=\"background-color:#5c3d2e\"></span></li>\n      </ul>\n    </div>\n  </div>\n</a>",
+      "css": ".ds-card { display: flex; flex-direction: column; text-decoration: none; color: inherit; background-color: oklch(0.94 0.018 76); border-radius: 4px; overflow: hidden; transition: transform 180ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px oklch(0.20 0.025 52 / 0.09); } .ds-card__image { aspect-ratio: 3 / 4; overflow: hidden; background-color: oklch(0.88 0.030 76); } .ds-card__placeholder { width: 100%; height: 100%; } .ds-card__info { padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; } .ds-card__name { font-family: 'Libre Baskerville', Georgia, serif; font-size: 1.25rem; font-weight: 500; letter-spacing: -0.015em; line-height: 1.2; color: oklch(0.20 0.025 52); margin: 0; } .ds-card__desc { font-family: 'Barlow', system-ui, Arial, sans-serif; font-size: 0.875rem; line-height: 1.55; color: oklch(0.46 0.018 52); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ds-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: auto; padding-top: 0.5rem; } .ds-card__price { font-family: 'Barlow', system-ui, Arial, sans-serif; font-size: 1rem; font-weight: 600; color: oklch(0.20 0.025 52); } .ds-card__swatches { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; } .ds-card__swatch { display: block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid oklch(0.20 0.025 52 / 0.12); }"
+    },
+    {
+      "name": "Site Navigation (Solid)",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Fixed 60px header in solid state (non-hero pages). Logo in Libre Baskerville; Barlow nav links.",
+      "html": "<header class=\"ds-nav\">\n  <a href=\"/\" class=\"ds-nav__logo\">Casa Tierra Luz</a>\n  <nav class=\"ds-nav__links\" aria-label=\"Navegación principal\">\n    <a href=\"/productos\" class=\"ds-nav__link\">Colección</a>\n    <a href=\"/login\" class=\"ds-nav__link\">Acceder</a>\n  </nav>\n</header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 2rem; background-color: oklch(0.99 0.000 0); box-shadow: 0 1px 0 oklch(0.20 0.025 52 / 0.08); } .ds-nav__logo { font-family: 'Libre Baskerville', Georgia, serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; color: oklch(0.20 0.025 52); white-space: nowrap; } .ds-nav__links { display: flex; align-items: center; gap: 1.5rem; } .ds-nav__link { font-family: 'Barlow', system-ui, Arial, sans-serif; font-size: 0.875rem; font-weight: 500; text-decoration: none; color: oklch(0.20 0.025 52); letter-spacing: 0.02em; transition: opacity 180ms; } .ds-nav__link:hover { opacity: 0.65; } .ds-nav__link:focus-visible { outline: 2px solid oklch(0.46 0.16 42); outline-offset: 3px; }"
+    },
+    {
+      "name": "Variant Selector Row",
+      "kind": "custom",
+      "refersTo": "variant-selector",
+      "description": "Product detail page variant button. Color swatch + label + availability + price in one row.",
+      "html": "<button class=\"ds-variant\">\n  <span class=\"ds-variant__swatch\" style=\"background-color:#c8832a\" aria-hidden=\"true\"></span>\n  <span class=\"ds-variant__info\">\n    <span class=\"ds-variant__name\">Ámbar · Vainilla</span>\n    <span class=\"ds-variant__avail\">3 disponibles</span>\n  </span>\n  <span class=\"ds-variant__price\">24,90&thinsp;€</span>\n</button>",
+      "css": ".ds-variant { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1rem; background-color: transparent; border: 1px solid oklch(0.84 0.010 75); border-radius: 4px; cursor: pointer; font-family: 'Barlow', system-ui, Arial, sans-serif; text-align: left; transition: border-color 180ms, background-color 180ms; } .ds-variant:hover { border-color: oklch(0.20 0.025 52); background-color: oklch(0.94 0.018 76); } .ds-variant[aria-pressed='true'] { border-color: oklch(0.20 0.025 52); border-width: 2px; background-color: oklch(0.94 0.018 76); } .ds-variant:disabled { opacity: 0.4; cursor: not-allowed; } .ds-variant__swatch { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid oklch(0.20 0.025 52 / 0.12); } .ds-variant__info { flex: 1; min-width: 0; } .ds-variant__name { font-size: 1rem; font-weight: 500; color: oklch(0.20 0.025 52); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-variant__avail { font-size: 0.75rem; color: oklch(0.46 0.018 52); display: block; margin-top: 2px; } .ds-variant__price { font-size: 0.875rem; font-weight: 600; color: oklch(0.20 0.025 52); white-space: nowrap; flex-shrink: 0; } .ds-variant:focus-visible { outline: 2px solid oklch(0.46 0.16 42); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Interior Encendido",
+    "overview": "The design lives in a specific warmth — el interior encendido, the lit interior. The moment when candles have been placed and lit, the world outside cools to dusk, and the room fills with something you made with your hands. Casa Tierra Luz is exactly this: warmth that is earned, not automatic. Crafted, not generated.\n\nThe palette is the room itself. --c-primary is warm sand — walls, linen, the surfaces where things rest. --c-accent is deep sienna — the clay of the holder, the earth the wax comes from, the burning material. Background is neutral white: the clean surface a candle sits on before it's lit.\n\nMotion is choreographed and unhurried: GSAP power3.out ease, scroll-triggered stagger, sections arriving with intention rather than energy. Design reference: mawastudio.es — refined craft studio aesthetic, elevated without distance. Clean, warm, airy — the product is the hero, the interface is the frame.",
+    "keyCharacteristics": [
+      "Warm sand (--c-primary) as brand section surfaces — hero, story sections; light, not dark",
+      "Single deep sienna accent (--c-accent) used on ≤2 interactive elements per screen — CTAs and prices",
+      "Neutral white (--c-bg) for product areas — the canvas that lets product photography breathe",
+      "Libre Baskerville 700 serif for all display and headline text",
+      "Barlow for body, labels, and interactive copy",
+      "Near-flat elevation: surfaces rest without shadow; only hover states lift",
+      "GSAP choreography with gsap.context + .revert() cleanup; prefers-reduced-motion respected"
+    ],
+    "rules": [
+      {
+        "name": "The Light Primary Rule",
+        "body": "Warm sand is the brand surface, not a dark hero. Hero, story sections, and catalog masthead carry --c-primary as background. Text on these surfaces uses --c-ink, not --c-on-primary. --c-on-primary is reserved for text on the dark footer only.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Flame Rule",
+        "body": "Sienna appears on ≤2 interactive elements per screen. A CTA and a price. Never for borders, never for section decoration. Rarity is the point.",
+        "section": "colors"
+      },
+      {
+        "name": "The Chroma-Zero Background Rule",
+        "body": "The product canvas (--c-bg) has chroma 0. No warm tint, no cream. Warmth is carried by the sand–sienna relationship in brand sections, not by tinting the neutral. Any color toward oklch(L 0.84-0.97, C < 0.06, hue 40-100) on the product canvas is the AI cream default — prohibited.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Gravity Rule",
+        "body": "Libre Baskerville 700 at display size should feel heavy against body text. The contrast between a serif headline and Barlow body is the visual rhythm of every page. A flat scale is a design error.",
+        "section": "typography"
+      },
+      {
+        "name": "The Serif Ownership Rule",
+        "body": "Libre Baskerville owns display, headline, and title. Barlow owns body and label. No Barlow headlines; no Baskerville body copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-by-Default Rule",
+        "body": "Surfaces have no resting shadow. A surface with a permanent drop shadow is a design error. Shadows are feedback (hover, active), never structure.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Use warm sand (oklch(0.88 0.030 76)) as the brand surface on hero, story, and catalog masthead sections — light and airy, not dark",
+      "Use --c-ink for all text on warm sand / primary surfaces; --c-on-primary is for dark footer text only",
+      "Use Libre Baskerville for all display and headline text",
+      "Let product photography breathe on --c-bg surfaces with generous padding",
+      "Keep deep sienna to ≤2 interactive elements per screen — CTA and price",
+      "Use gsap.context(fn, containerRef) with .revert() cleanup for all GSAP entrance animations",
+      "Apply text-wrap: balance on h1–h3; text-wrap: pretty on long prose",
+      "Include @media (prefers-reduced-motion: reduce) and JS matchMedia check for every animation",
+      "Verify body text contrast: --c-muted on --c-bg ≥5:1 ✓; --c-ink on --c-bg ≥14:1 ✓; --c-ink on --c-primary ≥7:1 ✓",
+      "Reference mawastudio.es as the primary visual tone anchor"
+    ],
+    "donts": [
+      "Use any warm-neutral near-white as the body background (oklch L 0.84–0.97, C < 0.06, hue 40–100) — the AI cream default",
+      "Put --c-on-primary (warm near-white) on warm sand surfaces — it fails contrast; --c-on-primary is for --c-footer dark surfaces only",
+      "Build identical card grids (same dimensions, icon + name + price, no variation)",
+      "Use cold studio minimalism or Etsy/Shopify template structure",
+      "Use boho Instagram visual vocabulary: terracotta dominant, macramé textures, dried-flower ornaments",
+      "Apply background-clip: text with a gradient — solid ink only",
+      "Use border-left or border-right > 1px as a colored accent stripe",
+      "Add uppercase tracked kicker labels above every section heading",
+      "Animate CSS layout properties (width, height, padding, top/left) — transforms and opacity only",
+      "Ship an entrance animation without a prefers-reduced-motion alternative",
+      "Use any font from the reflex-reject list: Fraunces, Newsreader, Lora, Cormorant, DM Sans, Outfit, Instrument Serif, Space Grotesk, Inter"
+    ]
+  }
+}
