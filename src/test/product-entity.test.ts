@@ -59,7 +59,7 @@ describe('t() localisation helper', () => {
 describe('Product interface shape', () => {
   it('isActive field is required on Product', () => {
     const color: Color = { id: 1, name: { es: 'Rojo' }, hexCode: '#FF0000', isActive: true }
-    const scent: Scent = { id: 1, name: { es: 'Rosa' }, isActive: true }
+    const scent: Scent = { id: 1, name: { es: 'Rosa' }, description: null, isActive: true }
     const variant: ProductVariant = {
       id: 10,
       productId: 1,

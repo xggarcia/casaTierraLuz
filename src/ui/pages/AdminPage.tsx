@@ -4,13 +4,15 @@ import { es as i18n } from '../../i18n/es'
 import { TabProducts } from './admin/TabProducts'
 import { TabScents } from './admin/TabScents'
 import { TabColors } from './admin/TabColors'
+import { TabMessages } from './admin/TabMessages'
 
-type AdminTab = 'products' | 'scents' | 'colors'
+type AdminTab = 'products' | 'scents' | 'colors' | 'messages'
 
 const TABS: { id: AdminTab; label: string }[] = [
   { id: 'products', label: i18n.admin.tabProducts },
   { id: 'scents',   label: i18n.admin.tabScents },
   { id: 'colors',   label: i18n.admin.tabColors },
+  { id: 'messages', label: i18n.admin.tabMessages },
 ]
 
 export function AdminPage() {
@@ -63,6 +65,7 @@ export function AdminPage() {
         {tab === 'products' && <TabProducts />}
         {tab === 'scents'   && <TabScents />}
         {tab === 'colors'   && <TabColors />}
+        {tab === 'messages' && <TabMessages />}
       </div>
     </div>
   )

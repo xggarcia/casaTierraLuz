@@ -32,6 +32,7 @@ export function Header() {
       </Link>
       <nav className="site-header__nav" aria-label="Navegación principal">
         <Link to="/productos" className="site-header__link">Colección</Link>
+        <Link to="/contacto" className="site-header__link">Contacto</Link>
         {user ? (
           <>
             {isAdmin && (

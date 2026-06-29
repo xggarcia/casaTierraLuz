@@ -1,0 +1,212 @@
+/* ============================================================
+   CASA TIERRA LUZ — Auth Pages (Login + Register)
+   Requires tokens from theme.css
+   ============================================================ */
+
+.auth-page {
+  min-height: calc(100dvh - var(--header-height));
+  background-color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+}
+
+/* Subtle sienna glow — atmospheric depth, not decoration */
+.auth-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 80% 30%,
+      oklch(from var(--c-accent) l c h / 0.05) 0%,
+      transparent 70%
+    );
+  z-index: 0;
+}
+
+/* ---- Content column ---- */
+
+.auth-column {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ---- Heading block ---- */
+
+.auth-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--c-ink);
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+
+.auth-subheading {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--c-muted);
+  margin: 0 0 var(--space-8);
+  line-height: 1.5;
+}
+
+/* ---- Form ---- */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ---- Field ---- */
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.auth-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+
+.auth-input {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--c-ink);
+  background-color: var(--c-bg);
+  border: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-4);
+  width: 100%;
+  outline: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-out-expo),
+    box-shadow   var(--dur-fast) var(--ease-out-expo);
+  -webkit-appearance: none;
+}
+
+.auth-input::placeholder {
+  color: var(--c-muted);
+  opacity: 0.6;
+}
+
+.auth-input:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px oklch(from var(--c-accent) l c h / 0.14);
+}
+
+.auth-field-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ---- Error message ---- */
+
+.auth-error {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: oklch(from var(--c-accent) calc(l - 0.08) calc(c - 0.08) h);
+  background-color: oklch(from var(--c-accent) l c h / 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-success {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-ink);
+  background-color: var(--c-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ---- Submit button ---- */
+
+.auth-submit {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-on-accent);
+  background-color: var(--c-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-8);
+  width: 100%;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out-expo),
+    transform        var(--dur-fast) var(--ease-out-expo);
+  margin-top: var(--space-2);
+}
+
+.auth-submit:hover:not(:disabled) {
+  background-color: oklch(from var(--c-accent) calc(l + 0.08) c h);
+  transform: translateY(-2px);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Footer link ---- */
+
+.auth-footer {
+  margin-top: var(--space-8);
+  text-align: center;
+}
+
+.auth-footer-text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-muted);
+  margin: 0;
+}
+
+.auth-footer-link {
+  color: var(--c-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity var(--dur-fast);
+}
+
+.auth-footer-link:hover {
+  opacity: 0.75;
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-input,
+  .auth-submit {
+    transition: none;
+  }
+}

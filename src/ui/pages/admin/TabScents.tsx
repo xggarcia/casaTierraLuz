@@ -9,6 +9,7 @@ export function TabScents() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
+  const [newDescription, setNewDescription] = useState('')
   const [createError, setCreateError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
 
@@ -30,8 +31,10 @@ export function TabScents() {
     setCreateError(null)
     setCreating(true)
     try {
-      await scentRepository.create({ name: { es: name } })
+      const description = newDescription.trim() ? { es: newDescription.trim() } : null
+      await scentRepository.create({ name: { es: name }, description })
       setNewName('')
+      setNewDescription('')
       loadScents()
     } catch {
       setCreateError(i18n.admin.saveError)
@@ -76,6 +79,15 @@ export function TabScents() {
               required
             />
           </div>
+          <div className="adm-field">
+            <label className="adm-label" htmlFor="scent-description">{i18n.admin.fieldDescription}</label>
+            <textarea
+              id="scent-description"
+              className="adm-textarea"
+              value={newDescription}
+              onChange={e => setNewDescription(e.target.value)}
+            />
+          </div>
           <div className="adm-form-footer">
             <button type="submit" className="adm-btn adm-btn--primary" disabled={creating}>
               {creating ? i18n.admin.saving : i18n.admin.create}
@@ -97,6 +109,7 @@ export function TabScents() {
               <tr>
                 <th>{i18n.admin.colId}</th>
                 <th>{i18n.admin.colName}</th>
+                <th>{i18n.admin.colDescription}</th>
                 <th>{i18n.admin.colActive}</th>
                 <th></th>
               </tr>
@@ -105,6 +118,7 @@ export function TabScents() {
               {[...Array(3)].map((_, i) => (
                 <tr key={i} className="adm-sk-row">
                   <td><div className="adm-sk-cell" style={{ width: '2rem' }} /></td>
+                  <td><div className="adm-sk-cell" style={{ width: '50%' }} /></td>
                   <td><div className="adm-sk-cell" style={{ width: '50%' }} /></td>
                   <td><div className="adm-sk-cell" style={{ width: '4rem' }} /></td>
                   <td><div className="adm-sk-cell" style={{ width: '6rem' }} /></td>
@@ -122,6 +136,7 @@ export function TabScents() {
               <tr>
                 <th>{i18n.admin.colId}</th>
                 <th>{i18n.admin.colName}</th>
+                <th>{i18n.admin.colDescription}</th>
                 <th>{i18n.admin.colActive}</th>
                 <th></th>
               </tr>
@@ -131,6 +146,7 @@ export function TabScents() {
                 <tr key={s.id}>
                   <td className="adm-table__id">{s.id}</td>
                   <td>{t(s.name)}</td>
+                  <td>{t(s.description)}</td>
                   <td>
                     <span className={`adm-badge ${s.isActive ? 'adm-badge--active' : 'adm-badge--inactive'}`}>
                       {s.isActive ? i18n.admin.yes : i18n.admin.no}

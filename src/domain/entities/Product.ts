@@ -11,6 +11,7 @@ export interface Color {
 export interface Scent {
   id: number
   name: Localized
+  description: Localized | null
   isActive: boolean
 }
 

@@ -28,10 +28,10 @@
 
 .adm-masthead__title {
   font-family: var(--font-body);
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: var(--c-ink);
-  padding: var(--space-5) 0 var(--space-4);
+  padding: 0.875rem 0 0.5rem;
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -55,7 +55,7 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: var(--space-3) var(--space-5);
+  padding: 0.625rem 0.9375rem;
   cursor: pointer;
   margin-bottom: -1px;
   transition: color 150ms, border-color 150ms;
@@ -547,19 +547,22 @@
   background-color: var(--c-surface);
   border: 1px solid oklch(0.88 0.012 72);
   border-radius: var(--radius-md);
-  padding: var(--space-5);
+  padding: 1.5rem;
   margin-bottom: var(--space-8);
   max-width: 480px;
 }
 
 .adm-create-card__title {
   font-family: var(--font-body);
-  font-size: 0.6875rem;
+  font-size: 0.9375rem;
   font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  margin: 0 0 var(--space-4);
+  color: var(--c-ink);
+  margin: 0 0 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.adm-create-card .adm-btn--primary {
+  width: 100%;
 }
 
 /* ---- Responsive ---- */
@@ -585,6 +588,73 @@
   .adm-table__actions {
     flex-direction: column;
     align-items: flex-end;
+  }
+}
+
+/* ---- Messages master-detail ---- */
+
+.adm-msg-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.adm-msg-list,
+.adm-msg-detail {
+  min-width: 0;
+}
+
+.adm-msg-list .adm-table tbody tr {
+  cursor: pointer;
+}
+
+.adm-msg-row--selected td,
+.adm-msg-row--selected:hover td {
+  background-color: oklch(0.94 0.03 76);
+}
+
+/* detail placeholder */
+.adm-msg-empty {
+  border: 1px dashed oklch(0.84 0.015 72);
+  border-radius: var(--radius-md);
+  padding: var(--space-12) var(--space-8);
+  text-align: center;
+  color: var(--c-muted);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+/* detail fields (inside adm-panel-card) */
+.adm-msg-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.adm-msg-field__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.adm-msg-field__value {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--c-ink);
+}
+
+.adm-msg-body {
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .adm-msg-split {
+    grid-template-columns: 1fr;
   }
 }
 

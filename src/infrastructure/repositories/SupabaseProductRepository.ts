@@ -68,6 +68,7 @@ function mapScent(raw: DbScent | DbScent[] | null): Scent | null {
   return {
     id: s.id,
     name: s.name as Scent['name'],
+    description: null,
     isActive: true,
   }
 }

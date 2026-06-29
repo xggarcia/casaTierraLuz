@@ -28,6 +28,22 @@ export const es = {
     variantPrice: 'Precio',
   },
 
+  // Contact
+  contact: {
+    title: 'Contacto',
+    subtitle: 'Escríbenos un mensaje',
+    loginRequired: 'Debes iniciar sesión para enviarnos un mensaje.',
+    goLogin: 'Iniciar sesión',
+    goRegister: 'Registrarse',
+    fieldName: 'Nombre',
+    fieldTitle: 'Título',
+    fieldMessage: 'Mensaje',
+    send: 'Enviar',
+    sending: 'Enviando…',
+    success: 'Mensaje enviado. Gracias por escribirnos.',
+    error: 'No se pudo enviar el mensaje. Inténtalo de nuevo.',
+  },
+
   // Auth
   auth: {
     email: 'Correo electrónico',
@@ -102,11 +118,27 @@ export const es = {
     colPrice: 'Precio',
     colStock: 'Stock',
 
+    // Scent description
+    fieldDescription: 'Descripción',
+    colDescription: 'Descripción',
+
     // Scent / Color forms
     scentNew: 'Nuevo olor',
     colorNew: 'Nuevo color',
     fieldHex: 'Color (hex)',
     colHex: 'Hex',
+
+    // Messages tab
+    tabMessages: 'Mensajes',
+    msgViewActive: 'Activos',
+    msgViewArchived: 'Archivados',
+    msgColTitle: 'Título',
+    msgColBody: 'Mensaje',
+    msgColEmail: 'Correo',
+    msgColDate: 'Enviado',
+    msgMarkRead: 'Marcar como leído',
+    msgDelete: 'Eliminar definitivamente',
+    msgSelectPrompt: 'Selecciona un mensaje para ver los detalles',
   },
 }
 

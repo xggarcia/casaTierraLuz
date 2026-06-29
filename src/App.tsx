@@ -7,6 +7,7 @@ import { ProductDetailPage } from './ui/pages/ProductDetailPage'
 import { LoginPage } from './ui/pages/LoginPage'
 import { RegisterPage } from './ui/pages/RegisterPage'
 import { AdminPage } from './ui/pages/AdminPage'
+import { ContactPage } from './ui/pages/ContactPage'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegisterPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/contacto" element={<ContactPage />} />
           </Routes>
         </main>
       </BrowserRouter>

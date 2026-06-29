@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "oklch(0.94 0.03 76)",
+        "reason": "Admin selected-row highlight: same hue/lightness as --c-surface (oklch(0.94 0.018 76)) with chroma raised to 0.03 for a distinct interactive state within the warm sand tonal ramp. Follows the same literal-value pattern used throughout admin.css for border and state colors.",
+        "createdAt": "2026-06-29T00:29:23.375Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "oklch(0.84 0.015 72)",
+        "reason": "Dashed border on admin message placeholder panel. Sits in the same warm-gray tonal family as other admin.css border values (oklch(0.86 0.015 72), oklch(0.88 0.012 72), oklch(0.80 0.015 72)). Intentional admin UI chrome value, consistent with established pattern in the file.",
+        "createdAt": "2026-06-29T00:29:30.708Z"
+      }
+    ]
+  }
+}

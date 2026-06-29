@@ -348,6 +348,7 @@ describe('SupabaseScentRepository', () => {
   const makeDbScent = (overrides = {}) => ({
     id: 1,
     name: { es: 'Rosa' },
+    description: null,
     is_active: true,
     ...overrides,
   })
@@ -381,14 +382,14 @@ describe('SupabaseScentRepository', () => {
   describe('create()', () => {
     it('happy path – inserts name', async () => {
       setupMutationChain('insert')
-      await repo.create({ name: { es: 'Canela' } })
-      expect(mockInsert).toHaveBeenCalledWith({ name: { es: 'Canela' } })
+      await repo.create({ name: { es: 'Canela' }, description: null })
+      expect(mockInsert).toHaveBeenCalledWith({ name: { es: 'Canela' }, description: null })
     })
 
     it('throws on error', async () => {
       mockInsert.mockResolvedValue({ error: { message: 'insert scent failed' } })
       mockFrom.mockReturnValue({ insert: mockInsert })
-      await expect(repo.create({ name: { es: 'X' } })).rejects.toMatchObject({ message: 'insert scent failed' })
+      await expect(repo.create({ name: { es: 'X' }, description: null })).rejects.toMatchObject({ message: 'insert scent failed' })
     })
   })
 
@@ -658,12 +659,12 @@ describe('Product.ts entity – isActive on Color and Scent', () => {
   })
 
   it('Scent interface requires isActive: boolean', () => {
-    const s: Scent = { id: 1, name: { es: 'Rosa' }, isActive: true }
+    const s: Scent = { id: 1, name: { es: 'Rosa' }, description: null, isActive: true }
     expect(s.isActive).toBe(true)
   })
 
   it('Scent.isActive can be false (silenced scent)', () => {
-    const s: Scent = { id: 2, name: { es: 'Canela' }, isActive: false }
+    const s: Scent = { id: 2, name: { es: 'Canela' }, description: null, isActive: false }
     expect(s.isActive).toBe(false)
   })
 })
