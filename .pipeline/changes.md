@@ -1,78 +1,61 @@
-# Changes — Admin Messages master-detail + hard delete
-
-## Files created
-
-### `supabase/migrations/003_messages_delete_policy.sql`
-Adds an admin-only DELETE RLS policy on the `messages` table using the same
-named-policy / `FOR DELETE` / `USING (is_admin())` pattern as `002_messages.sql`.
-Required for `supabase.from('messages').delete()` to affect rows when the caller
-is an admin (without this policy, the delete silently affects 0 rows).
+# Changes — Category filter (store) + Category assignment (admin)
 
 ## Files modified
 
-### `src/infrastructure/repositories/SupabaseMessageRepository.ts`
-Added `remove(id: number): Promise<void>` between `markAsRead` and `create`.
-Uses `.from('messages').delete().eq('id', id)`, throws on error — identical
-style to `markAsRead`.
+### `src/infrastructure/repositories/SupabaseCategoryRepository.ts`
+Added four new methods to `SupabaseCategoryRepository`:
+- `getAllActive()` — fetches only `is_active = true` categories; used by the public catalog filter bar and the admin category panel.
+- `getCategoryIdsForProduct(productId)` — returns the category IDs assigned to a given product; used to pre-select checkboxes when opening a product in edit mode.
+- `setProductCategories(productId, categoryIds)` — delete-then-insert keyed by `product_id`; saves a product's full category set independently of the main product form.
+- `getProductCategoryMap()` — returns `{ [productId]: categoryId[] }` from one query; used by `ProductsPage` for client-side filtering without per-category round trips.
+
+No existing methods were renamed or altered.
 
 ### `src/i18n/es.ts`
-Added two keys inside `admin` → `// Messages tab` block after `msgMarkRead`:
-- `msgDelete: 'Eliminar definitivamente'`
-- `msgSelectPrompt: 'Selecciona un mensaje para ver los detalles'`
+Added four new string keys:
+- `products.filterAll` — label for the "Todas" chip.
+- `products.filterEmpty` — inline message when a filter yields no products.
+- `admin.categoriesTitle` — panel heading in the product edit view.
+- `admin.categoriesSave` — save button label in the categories panel.
 
-### `src/ui/styles/admin.css`
-Appended a `/* ---- Messages master-detail ---- */` section before the
-`prefers-reduced-motion` block containing:
-- `.adm-msg-split` — two-column grid layout
-- `.adm-msg-list` / `.adm-msg-detail` — column containers
-- `.adm-msg-list .adm-table tbody tr` — cursor: pointer on list rows
-- `.adm-msg-row--selected td` — selected row highlight
-- `.adm-msg-empty` — dashed-border placeholder for empty right panel
-- `.adm-msg-field` / `.adm-msg-field__label` / `.adm-msg-field__value` — detail field rows
-- `.adm-msg-body` — `white-space: pre-wrap` for message body
-- `@media (max-width: 760px)` — collapses to single column
+### `src/ui/styles/catalog.css`
+Added filter-bar styles before the product grid block:
+- `.catalog__filters` — flex row with wrap and gap, bottom margin to sit above the grid.
+- `.catalog__filter` — pill button using existing tokens; transparent background, muted border, ink text, transition on background/color/border.
+- `.catalog__filter:hover` — primary background fill.
+- `.catalog__filter--active` — ink background, on-primary text, ink border (mirrors load-more hover).
+- Added `.catalog__filter` to the `prefers-reduced-motion` transition-none group.
 
-Two literal color values (`oklch(0.94 0.03 76)` and `oklch(0.84 0.015 72)`)
-were flagged by the design-system-color hook. Both were confirmed intentional —
-they follow the same warm-gray literal-value pattern already used throughout
-`admin.css` for borders and interaction states — and registered as shared
-ignores in `.impeccable/config.json`.
+### `src/ui/pages/ProductsPage.tsx`
+Feature 1 — category filter in the public catalog:
+- Imports added: `categoryRepository`, `Category` type, `es as i18n`.
+- New state: `categories`, `productCategoryMap`, `activeCategoryId`.
+- Mount effect replaced with `Promise.all` loading products, active categories, and the join map together; error/finally unchanged.
+- `handleFilter` function resets `visibleCount` and `prevVisibleRef` on filter change.
+- `filteredProducts` derived in render from `productCategoryMap`; `visibleProducts`, `hasMore`, `remaining` now operate on `filteredProducts`.
+- Grid-entrance GSAP effect dependency updated from `[allProducts]` to `[allProducts, activeCategoryId]`.
+- Filter bar rendered inside `.catalog__container` above the grid when `categories.length > 0`.
+- Per-category empty state renders an inline message using `i18n.products.filterEmpty` instead of the full-page `catalog-state` block; masthead and filter bar remain visible.
 
-### `src/ui/pages/admin/TabMessages.tsx`
-Rewrote the component with:
-- New `selectedId: number | null` state; derived `selected` from `messages.find`.
-- `loadMessages` now calls `setSelectedId(null)` before fetching, so every
-  reload (view switch, mark-as-read, delete) clears any stale selection.
-- Added `handleDelete(m)` calling `messageRepository.remove(m.id)` then
-  `loadMessages(view)`.
-- Layout replaced with `adm-msg-split` two-column container:
-  - Left `adm-msg-list`: two-column table (title + email only), clickable rows,
-    `adm-msg-row--selected` on active row, 2-cell skeleton.
-  - Right `adm-msg-detail`: placeholder `adm-msg-empty` when nothing selected;
-    `adm-panel-card` with five `adm-msg-field` rows (name, email, title, body,
-    date) and an `adm-form-footer` with the view-appropriate action button
-    (primary "Marcar como leído" in active view; danger "Eliminar definitivamente"
-    in archived view).
-
-## TypeScript
-
-`npx tsc --noEmit` completed with no errors or warnings.
+### `src/ui/pages/admin/TabProducts.tsx`
+Feature 2 — category assignment in the admin product form:
+- Imports added: `categoryRepository`, `Category` type.
+- New state: `availableCategories`, `selectedCategoryIds`, `categoriesSaving`, `categoriesError`.
+- `loadVariantData` extended to also call `categoryRepository.getAllActive()` and `categoryRepository.getCategoryIdsForProduct(productId)` in the existing `Promise.all`; sets `availableCategories` and `selectedCategoryIds` on success; failure still silently caught.
+- `openNew` resets `availableCategories`, `selectedCategoryIds`, `categoriesError`.
+- `openEdit` resets `categoriesError` (data repopulated by `loadVariantData`).
+- `cancelEdit` resets `categoriesError`.
+- `handleToggleCategory` adds/removes a category ID from `selectedCategoryIds`.
+- `handleSaveCategories` guards against non-edit state, calls `setProductCategories`, sets error on failure, independent of the main product save.
+- Categories panel added in the right column (`editingProductId !== null` block) above the variants card: `adm-panel-card` with `adm-variants-header`, error alert, loading/empty/checkbox list, and a save footer button. Reuses all existing CSS classes.
 
 ## Tester focus areas
 
-1. **Selection reset** — switch between active/archived tabs while a row is
-   selected; the detail panel must return to the placeholder on every switch.
-2. **Mark as read** — select an active message, click the button; after reload
-   the message disappears from the active list and the right panel shows the
-   placeholder (not the stale message).
-3. **Hard delete** — switch to archived view, select a message, click
-   "Eliminar definitivamente"; the row must be permanently removed (confirm in
-   Supabase dashboard) and the right panel returns to placeholder.
-4. **Empty list** — when there are no messages, the left column shows
-   `adm-empty` text and the right column shows the placeholder.
-5. **Body line breaks** — send a message with newlines in the body; verify they
-   render as line breaks in the detail panel (white-space: pre-wrap).
-6. **Responsive** — at ≤760px the two columns must stack vertically.
-7. **RLS** — the migration must be applied to Supabase before delete works in
-   production; without it the delete call will silently succeed (no JS error)
-   but remove 0 rows.
+1. **Public filter bar** — verify "Todas" shows all products; clicking a category chip shows only assigned products; clicking a second category chip updates correctly; pagination resets to page 1 on each filter change; "load more" count is correct after filtering.
+2. **Per-category empty state** — assign a category to no products; select that category chip; confirm the inline message appears and the masthead + filter bar remain visible (no full-page takeover).
+3. **No categories exist** — confirm the filter bar does not render at all (no empty `<nav>`).
+4. **Admin category panel** — open an existing product; confirm checkboxes load pre-selected; toggle items; click "Guardar categorías"; confirm the join table reflects the new set without affecting other products.
+5. **New product flow** — create a product; confirm auto-transition to edit mode shows the category panel.
+6. **Saving empty category set** — uncheck all categories; save; confirm all rows are removed from `product_categories` for that product with no error.
+7. **Load failure resilience** — `ProductsPage` shows the error state when the `Promise.all` fails; admin category panel failure does not blank the edit page (silent catch).
+8. **prefers-reduced-motion** — confirm category chip CSS transitions are suppressed; no GSAP animation on chips.

@@ -224,7 +224,7 @@ export function HomePage() {
       <footer className="home-footer">
         <div className="home-footer__container">
           <p className="home-footer__brand">Casa Tierra Luz</p>
-          <p className="home-footer__copy">Velas artesanales · España</p>
+          <p className="home-footer__copy">Velas artesanales · Barcelona</p>
         </div>
       </footer>
     </div>

@@ -5,14 +5,16 @@ import { TabProducts } from './admin/TabProducts'
 import { TabScents } from './admin/TabScents'
 import { TabColors } from './admin/TabColors'
 import { TabMessages } from './admin/TabMessages'
+import { TabCategories } from './admin/TabCategories'
 
-type AdminTab = 'products' | 'scents' | 'colors' | 'messages'
+type AdminTab = 'products' | 'scents' | 'colors' | 'categories' | 'messages'
 
 const TABS: { id: AdminTab; label: string }[] = [
-  { id: 'products', label: i18n.admin.tabProducts },
-  { id: 'scents',   label: i18n.admin.tabScents },
-  { id: 'colors',   label: i18n.admin.tabColors },
-  { id: 'messages', label: i18n.admin.tabMessages },
+  { id: 'products',   label: i18n.admin.tabProducts },
+  { id: 'categories', label: i18n.admin.tabCategories },
+  { id: 'scents',     label: i18n.admin.tabScents },
+  { id: 'colors',     label: i18n.admin.tabColors },
+  { id: 'messages',   label: i18n.admin.tabMessages },
 ]
 
 export function AdminPage() {
@@ -64,8 +66,9 @@ export function AdminPage() {
       <div className="adm-content">
         {tab === 'products' && <TabProducts />}
         {tab === 'scents'   && <TabScents />}
-        {tab === 'colors'   && <TabColors />}
-        {tab === 'messages' && <TabMessages />}
+        {tab === 'colors'      && <TabColors />}
+        {tab === 'categories'  && <TabCategories />}
+        {tab === 'messages'    && <TabMessages />}
       </div>
     </div>
   )

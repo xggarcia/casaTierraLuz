@@ -5,8 +5,10 @@ import { variantRepository } from '../../../infrastructure/repositories/Supabase
 import type { VariantInput } from '../../../infrastructure/repositories/SupabaseVariantRepository'
 import { colorRepository } from '../../../infrastructure/repositories/SupabaseColorRepository'
 import { scentRepository } from '../../../infrastructure/repositories/SupabaseScentRepository'
+import { categoryRepository } from '../../../infrastructure/repositories/SupabaseCategoryRepository'
 import type { Product, ProductVariant, Color, Scent } from '../../../domain/entities/Product'
 import { t } from '../../../domain/entities/Product'
+import type { Category } from '../../../domain/entities/Category'
 import { es as i18n } from '../../../i18n/es'
 
 export function TabProducts() {
@@ -32,6 +34,12 @@ export function TabProducts() {
   const [availableScents, setAvailableScents] = useState<Scent[]>([])
   const [variantEditing, setVariantEditing] = useState<ProductVariant | 'new' | null>(null)
   const [variantsLoading, setVariantsLoading] = useState(false)
+
+  // Category state (only when editing an existing product)
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([])
+  const [categoriesSaving, setCategoriesSaving] = useState(false)
+  const [categoriesError, setCategoriesError] = useState<string | null>(null)
 
   // Variant form state
   const [vColorId, setVColorId] = useState('')
@@ -59,11 +67,15 @@ export function TabProducts() {
       variantRepository.getByProductId(productId),
       colorRepository.getAllForAdmin(),
       scentRepository.getAllForAdmin(),
+      categoryRepository.getAllActive(),
+      categoryRepository.getCategoryIdsForProduct(productId),
     ])
-      .then(([v, c, s]) => {
+      .then(([v, c, s, cats, catIds]) => {
         setVariants(v)
         setAvailableColors(c)
         setAvailableScents(s)
+        setAvailableCategories(cats)
+        setSelectedCategoryIds(catIds)
       })
       .catch(() => {})
       .finally(() => setVariantsLoading(false))
@@ -81,6 +93,9 @@ export function TabProducts() {
     setFormError(null)
     setVariantEditing(null)
     setVariants([])
+    setAvailableCategories([])
+    setSelectedCategoryIds([])
+    setCategoriesError(null)
   }
 
   const openEdit = (p: Product) => {
@@ -94,6 +109,7 @@ export function TabProducts() {
     setFormFeatured(false)
     setFormError(null)
     setVariantEditing(null)
+    setCategoriesError(null)
     loadVariantData(p.id)
   }
 
@@ -101,6 +117,7 @@ export function TabProducts() {
     setEditing(null)
     setVariantEditing(null)
     setFormError(null)
+    setCategoriesError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,6 +285,27 @@ export function TabProducts() {
       loadVariantData(editing.id)
     } catch {
       setVError(i18n.admin.deleteError)
+    }
+  }
+
+  const handleToggleCategory = (categoryId: number) => {
+    setSelectedCategoryIds(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  const handleSaveCategories = async () => {
+    if (editing === 'new' || editing === null) return
+    setCategoriesError(null)
+    setCategoriesSaving(true)
+    try {
+      await categoryRepository.setProductCategories(editing.id, selectedCategoryIds)
+    } catch {
+      setCategoriesError(i18n.admin.saveError)
+    } finally {
+      setCategoriesSaving(false)
     }
   }
 
@@ -478,8 +516,45 @@ export function TabProducts() {
           </form>
         </div>
 
-        {/* Right column: variants (existing products only) */}
+        {/* Right column: categories + variants (existing products only) */}
         {editingProductId !== null && (
+          <div>
+          <div className="adm-panel-card">
+            <div className="adm-variants-header">
+              <p className="adm-panel-card__title" style={{ margin: 0 }}>{i18n.admin.categoriesTitle}</p>
+            </div>
+
+            {categoriesError && <div className="adm-alert adm-alert--error">{categoriesError}</div>}
+
+            {variantsLoading ? (
+              <p className="adm-loading">{i18n.loading}</p>
+            ) : availableCategories.length === 0 ? (
+              <p className="adm-empty">{i18n.admin.emptyList}</p>
+            ) : (
+              availableCategories.map(c => (
+                <label key={c.id} className="adm-checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={selectedCategoryIds.includes(c.id)}
+                    onChange={() => handleToggleCategory(c.id)}
+                  />
+                  <span className="adm-label">{t(c.name)}</span>
+                </label>
+              ))
+            )}
+
+            <div className="adm-form-footer">
+              <button
+                type="button"
+                className="adm-btn adm-btn--primary"
+                disabled={categoriesSaving}
+                onClick={handleSaveCategories}
+              >
+                {categoriesSaving ? i18n.admin.saving : i18n.admin.categoriesSave}
+              </button>
+            </div>
+          </div>
+
           <div className="adm-panel-card">
             <div className="adm-variants-header">
               <p className="adm-panel-card__title" style={{ margin: 0 }}>{i18n.admin.variantsTitle}</p>
@@ -647,6 +722,7 @@ export function TabProducts() {
                 </form>
               </div>
             )}
+          </div>
           </div>
         )}
       </div>

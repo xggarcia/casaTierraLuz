@@ -19,6 +19,8 @@ export const es = {
     empty: 'No hay productos disponibles',
     error: 'Error al cargar productos',
     currency: '€',
+    filterAll: 'Todas',
+    filterEmpty: 'No hay productos en esta categoría.',
     notFound: 'Producto no encontrado',
     noVariants: 'Sin variantes disponibles',
     noColor: 'Sin color',
@@ -127,6 +129,16 @@ export const es = {
     colorNew: 'Nuevo color',
     fieldHex: 'Color (hex)',
     colHex: 'Hex',
+
+    // Categories panel (inside product form)
+    categoriesTitle: 'Categorías',
+    categoriesSave: 'Guardar categorías',
+
+    // Categories tab
+    tabCategories: 'Categorías',
+    categoryNew: 'Nueva categoría',
+    categoryAssignTitle: 'Asignar velas a la categoría',
+    assign: 'Asignar',
 
     // Messages tab
     tabMessages: 'Mensajes',

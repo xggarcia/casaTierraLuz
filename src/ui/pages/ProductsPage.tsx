@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { productRepository } from '../../infrastructure/repositories/SupabaseProductRepository'
+import { categoryRepository } from '../../infrastructure/repositories/SupabaseCategoryRepository'
 import type { Product, Color } from '../../domain/entities/Product'
 import { t } from '../../domain/entities/Product'
+import type { Category } from '../../domain/entities/Category'
+import { es as i18n } from '../../i18n/es'
 import '../styles/catalog.css'
 
 const PAGE_SIZE = 12
@@ -99,17 +102,27 @@ function CatalogSkeleton() {
 
 export function ProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [productCategoryMap, setProductCategoryMap] = useState<Record<number, number[]>>({})
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const containerRef = useRef<HTMLDivElement>(null)
   const prevVisibleRef = useRef(PAGE_SIZE)
 
-  // Fetch all products once
+  // Fetch all products, active categories, and join map once
   useEffect(() => {
-    productRepository
-      .getAll()
-      .then(setAllProducts)
+    Promise.all([
+      productRepository.getAll(),
+      categoryRepository.getAllActive(),
+      categoryRepository.getProductCategoryMap(),
+    ])
+      .then(([products, cats, catMap]) => {
+        setAllProducts(products)
+        setCategories(cats)
+        setProductCategoryMap(catMap)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
@@ -133,7 +146,7 @@ export function ProductsPage() {
     return () => ctx.revert()
   }, [])
 
-  // Grid entrance when products first arrive
+  // Grid entrance when products first arrive or filter changes
   useEffect(() => {
     if (!allProducts.length) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -145,7 +158,7 @@ export function ProductsPage() {
       )
     }, containerRef)
     return () => ctx.revert()
-  }, [allProducts]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [allProducts, activeCategoryId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Animate newly revealed cards after "load more"
   useEffect(() => {
@@ -193,9 +206,19 @@ export function ProductsPage() {
     )
   }
 
-  const visibleProducts = allProducts.slice(0, visibleCount)
-  const hasMore = visibleCount < allProducts.length
-  const remaining = Math.min(PAGE_SIZE, allProducts.length - visibleCount)
+  const handleFilter = (categoryId: number | null) => {
+    setActiveCategoryId(categoryId)
+    setVisibleCount(PAGE_SIZE)
+    prevVisibleRef.current = PAGE_SIZE
+  }
+
+  const filteredProducts = activeCategoryId === null
+    ? allProducts
+    : allProducts.filter(p => (productCategoryMap[p.id] ?? []).includes(activeCategoryId))
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  const hasMore = visibleCount < filteredProducts.length
+  const remaining = Math.min(PAGE_SIZE, filteredProducts.length - visibleCount)
 
   return (
     <div ref={containerRef}>
@@ -210,22 +233,54 @@ export function ProductsPage() {
       {/* Grid section */}
       <section className="catalog__section" aria-label="Catálogo de productos">
         <div className="catalog__container">
-          <div className="catalog__grid">
-            {visibleProducts.map((p, i) => (
-              <ProductCard key={p.id} product={p} statement={i === 0} />
-            ))}
-          </div>
-
-          {hasMore && (
-            <div className="catalog__load-more">
+          {categories.length > 0 && (
+            <nav className="catalog__filters" aria-label="Filtrar por categoría">
               <button
-                className="catalog__load-more-btn"
                 type="button"
-                onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                className={"catalog__filter" + (activeCategoryId === null ? " catalog__filter--active" : "")}
+                aria-pressed={activeCategoryId === null}
+                onClick={() => handleFilter(null)}
               >
-                Ver {remaining} más
+                {i18n.products.filterAll}
               </button>
-            </div>
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  type="button"
+                  className={"catalog__filter" + (activeCategoryId === category.id ? " catalog__filter--active" : "")}
+                  aria-pressed={activeCategoryId === category.id}
+                  onClick={() => handleFilter(category.id)}
+                >
+                  {t(category.name)}
+                </button>
+              ))}
+            </nav>
+          )}
+
+          {filteredProducts.length === 0 ? (
+            <p style={{ color: 'var(--c-muted)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)' }}>
+              {i18n.products.filterEmpty}
+            </p>
+          ) : (
+            <>
+              <div className="catalog__grid">
+                {visibleProducts.map((p, i) => (
+                  <ProductCard key={p.id} product={p} statement={i === 0} />
+                ))}
+              </div>
+
+              {hasMore && (
+                <div className="catalog__load-more">
+                  <button
+                    className="catalog__load-more-btn"
+                    type="button"
+                    onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                  >
+                    Ver {remaining} más
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

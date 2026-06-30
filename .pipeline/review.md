@@ -1,93 +1,60 @@
-# Review — Admin Messages master-detail + hard delete
+# Review — Category filter (store) + Category assignment (admin)
 
-VERDICT: NEEDS WORK
+Reviewer: senior review stage
+Date: 2026-06-30
+Method: read spec/changes/test-results, full `git diff`, read of `SupabaseCategoryRepository.ts`, `Category.ts`, `ProductsPage.tsx` render block, `TabProducts.tsx`, and the test file; cross-checked i18n keys and CSS tokens.
 
-The feature code itself (TabMessages master-detail rewrite, `remove()` repo method,
-DELETE RLS migration, CSS, i18n) is correct and matches the spec almost exactly.
-However the pipeline shipped a **false "ALL CHECKS PASS"** test report: the actual
-`vitest` suite was never run, and it does not pass. One failure is directly caused
-by this feature's spec change.
+## VERDICT: SHIP WITH WARNINGS
 
-## What's solid
+Both features are implemented correctly and match the spec. The repository layer has real behavioral unit tests. The two warnings below are about test depth and unspecced scope creep, not about broken behavior.
 
-- `SupabaseMessageRepository.remove(id: number): Promise<void>` is byte-for-byte the
-  spec style — `.from('messages').delete().eq('id', id)`, `if (error) throw error`,
-  placed between `markAsRead` and `create`. No `any`, correct return type.
-- Migration `003_messages_delete_policy.sql` is correct: single `CREATE POLICY
-  "Admin messages delete" ON messages FOR DELETE USING (is_admin())`, no `is_admin()`
-  redefinition, matches `002_messages.sql` pattern. Ordering is fine (002 creates the
-  table + enables RLS, 003 adds the policy). Security is sound — delete is admin-only
-  via RLS, no client-side bypass.
-- `TabMessages.tsx`: list shows only title + email; detail panel shows all five fields;
-  body uses `adm-msg-body` (`white-space: pre-wrap`); date via `toLocaleString('es-ES')`;
-  mark-as-read only in active view, delete only in archived view (mutually exclusive
-  conditional renders).
-- `loadMessages` calls `setSelectedId(null)` before every fetch, so view-switch,
-  mark-as-read, and delete all clear stale selection — the main edge case is handled.
-- Empty list shows `adm-empty` on the left while the right column keeps the placeholder.
-- Error paths set `i18n.error` (load) / `i18n.admin.saveError` (actions) into the
-  existing `adm-alert--error` banner.
-- All referenced classes (`adm-panel-card`, `adm-form-footer`, `adm-btn--danger`,
-  `adm-btn--sm`, `adm-msg-*`) and i18n keys exist. CSS collapses to one column at
-  `max-width: 760px`.
-- `npx tsc --noEmit` exits 0.
+---
 
-## Issues
+## Correctness — PASS
 
-### BLOCKER — failing test caused by this feature
-`src/test/messaging-system.test.ts:694-700`, test
-"no action button rendered in archived view (read-only)" asserts:
-```
-expect(src).not.toMatch(/view\s*===\s*'archived'[\s\S]{0,200}<button/)
-```
-The new spec **intentionally** renders a Delete button in the archived view, so this
-test now fails. The test encodes the OLD behavior (archived = read-only) and directly
-contradicts spec section 3 ("When `view === 'archived'`: one button ... msgDelete").
+Feature 1 (catalog filter) and Feature 2 (admin assignment) both match the spec.
 
-Fix: update this test to match the new spec — the archived view MUST render exactly one
-`adm-btn--danger` button calling `handleDelete`. While there, ADD missing coverage for
-the new surface area, none of which is currently tested:
-- `SupabaseMessageRepository.remove(id)` — happy path (`from('messages').delete().eq('id', id)`),
-  `Promise<void>` resolves undefined, and throw-on-error. (The audit's "ALL CHECKS PASS"
-  claimed check #8 covered `remove`, but no test exercises it.)
-- `TabMessages` selection reset / master-detail rendering (title+email-only list, detail
-  fields, view-appropriate button).
-- `supabase/migrations/003_messages_delete_policy.sql` content (admin-only DELETE policy,
-  no `is_admin()` redefinition).
+- Repository: all four methods (`getAllActive`, `getCategoryIdsForProduct`, `setProductCategories`, `getProductCategoryMap`) match the spec to the letter. `setProductCategories` is correctly keyed by `product_id` (delete-then-insert), NOT `category_id`, so it cannot wipe a sibling product's assignments. Empty-set guard (`categoryIds.length > 0`) present. Existing methods untouched.
+- Data flow is correct. `productCategoryMap` is built directly from `product_categories` join rows keyed by `product_id`, so a product can only surface under a category it is actually assigned to. The `?? []` coalesce means a product with no categories appears only under "Todas" (never wrongly filtered in). "Todas" (`activeCategoryId === null`) returns `allProducts` unfiltered, so it can never show fewer than expected.
+- Pagination reset on filter change is correct: `handleFilter` sets `visibleCount = PAGE_SIZE` and `prevVisibleRef.current = PAGE_SIZE`. `visibleProducts` / `hasMore` / `remaining` all derive from `filteredProducts`, not `allProducts`.
+- Per-category empty state (lines 260-263) is inline inside `.catalog__container`; masthead (line 226) and filter nav (line 236) render above it unconditionally, so both stay visible. Matches edge case #2. The full-page `catalog-state` "no products at all" gate (line 200) is preserved.
+- Admin panel mirrors the variants panel: lazy-loaded in the same `Promise.all`, gated on `editingProductId !== null`, independent save, silent catch on load. `handleSaveCategories` guards `editing === 'new' || editing === null`.
 
-### BLOCKER — test report is inaccurate
-`.pipeline/test-results.md` states "Method: static code audit + tsc" and concludes
-"ALL CHECKS PASS", but the repo HAS a configured test runner (`vitest`) which was not
-run. Running it now: **36 failed / 297 passed across 4 failed files.** Green-by-inspection
-is not green. The report must reflect an actual `vitest run`.
+## Type safety — PASS
 
-### WARNING — large unrelated scope in the same working tree
-The diff for this branch contains far more than the messages feature: a new
-`ContactPage`, `/contacto` route + Header link, full Login/Register visual rewrite
-(`ui-page`→`auth-page`, new `auth.css`), scent `description` field, and
-`tsconfig.json` now excludes all of `src/test`. Most of the 36 failures come from this
-out-of-scope work (wireframe `ui-*` class assertions, Header tests, `admin-crud` scent
-shape). This is outside this spec, but it ships together and leaves the suite red.
-Whoever owns these changes must green or update those tests before merge; at minimum
-this feature must not be merged on top of a red baseline without acknowledging it.
+No `any`. `Category` entity is properly typed. Casts in the repo (`data as ... DbCategory[]`, `as { category_id: number }[]`) match the established pattern in the same file's pre-existing methods. `tsc --noEmit` reported clean by the tester.
 
-### SUGGESTION — accessibility of clickable rows
-`TabMessages.tsx:111-115` — list `<tr onClick=...>` has `cursor: pointer` (CSS) but no
-keyboard affordance: no `tabIndex`, no `role="button"`/`onKeyDown`, no `aria-selected`.
-Selection is mouse-only and invisible to screen-reader/keyboard users. The spec did not
-require this, so it is not a blocker, but consider `tabIndex={0}`, an `onKeyDown` (Enter/
-Space → `setSelectedId`), and `aria-selected={m.id === selectedId}` on the row.
+## i18n — PASS
 
-### SUGGESTION — no delete confirmation
-`handleDelete` permanently deletes with no confirm dialog. The spec explicitly says a
-confirm is out of scope, so this is acceptable — flagging only because it is a
-destructive, irreversible action triggered by a single click.
+All four new keys present (`products.filterAll`, `products.filterEmpty`, `admin.categoriesTitle`, `admin.categoriesSave`). Other keys referenced by the new JSX (`i18n.loading`, `i18n.admin.saving`, `i18n.admin.saveError`, `i18n.admin.emptyList`) all exist. No missing-key risk.
 
-## Required to reach SHIP
-1. Update `messaging-system.test.ts` archived-view test to expect the Delete button
-   (new spec behavior), and add real coverage for `remove()`, the master-detail render,
-   and the 003 migration.
-2. Regenerate `.pipeline/test-results.md` from an actual `npx vitest run`, not a static
-   audit.
-3. Get the full suite green (or explicitly scope/justify the unrelated failures that
-   ride along in this working tree).
+## Security — PASS
+
+Repo layer correctly relies on RLS. `getProductCategoryMap` does an unfiltered public read of `product_categories` (allowed by the `Public read product_cat` policy). Writes go through `setProductCategories`, gated by `Admin manage product_cat` (is_admin()). No auth logic duplicated client-side. Correct.
+
+## Performance — PASS
+
+Single `Promise.all` on mount (no per-category round-trip). `filteredProducts` is an O(n) in-render derivation over a small catalog — acceptable. GSAP grid-entrance effect adds `activeCategoryId` to its deps as specced; no conflict with the `visibleCount` load-more effect.
+
+---
+
+## WARNINGS
+
+### WARNING 1 — ProductsPage / TabProducts tests are source-string assertions, not behavioral
+`src/test/category-filter.test.ts` covers the repository with real mocked-Supabase behavioral tests (good), but every ProductsPage and TabProducts check is `expect(src).toContain(...)` / `toMatch(...)` against the raw file text (e.g. lines 384-467: `expect(src).toContain('filteredProducts.slice(')`). These assert the code *contains a string*, not that filtering, pagination reset, or the per-category empty state actually behave correctly. A future refactor that renames a variable would fail the test without any behavior change, and conversely a logic bug that preserved the strings would pass green. The 113 green count overstates real coverage for the two UI features. Recommend adding at least one render-level test (React Testing Library) that mounts `ProductsPage`, clicks a chip, and asserts the rendered grid shrinks — but this is not ship-blocking given the logic is simple and verified by reading.
+
+### WARNING 2 — Unspecced scope creep in the diff
+The diff includes changes the spec did not request and `changes.md` does not document:
+- `src/ui/pages/AdminPage.tsx` — new "Categorías" admin tab wired to a new `TabCategories`.
+- `src/ui/pages/admin/TabCategories.tsx` and `src/domain/entities/Category.ts` — new untracked files.
+- `src/i18n/es.ts` — extra keys beyond the four specced (`tabCategories`, `categoryNew`, `categoryAssignTitle`, `assign`).
+- `src/ui/pages/HomePage.tsx` — footer copy changed `España` -> `Barcelona` (unrelated to this feature).
+
+These compile clean and appear internally consistent, but they were not in scope, not in `changes.md`, and not covered by the test audit's focus areas. The `HomePage` footer edit in particular is an unrelated content change riding along in this PR. Recommend either documenting these in `changes.md` or splitting the `HomePage` footer change into its own commit. Not blocking, but a reviewer downstream should be aware the PR does more than the spec/changes describe.
+
+---
+
+## SUGGESTION
+
+- ProductsPage per-category empty state uses inline `style={{...}}` (line 261) while the rest of the catalog uses CSS classes. Minor inconsistency; a `.catalog__filter-empty` class would match the file's convention. Cosmetic only.
+
