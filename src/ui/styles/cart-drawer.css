@@ -1,0 +1,373 @@
+/* ============================================================
+   CASA TIERRA LUZ — Cart Drawer (Mini-Cart) Styles
+   Requires tokens from theme.css
+   ============================================================ */
+
+/* ---- Backdrop ---- */
+
+.cart-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.20 0.025 52 / 0.35);
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity    var(--dur-base) var(--ease-out-quart),
+    visibility var(--dur-base);
+}
+
+.cart-drawer__backdrop--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---- Drawer panel ---- */
+
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100vw);
+  background: var(--c-bg);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--dur-base) var(--ease-out-expo);
+  box-shadow: -2px 0 24px oklch(0.20 0.025 52 / 0.12);
+}
+
+.cart-drawer--open {
+  transform: translateX(0);
+}
+
+/* ---- Header row ---- */
+
+.cart-drawer__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-6);
+  border-bottom: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+  flex-shrink: 0;
+}
+
+.cart-drawer__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--c-ink);
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cart-drawer__close {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--text-2xl);
+  color: var(--c-muted);
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur-fast);
+}
+
+.cart-drawer__close:hover {
+  color: var(--c-ink);
+}
+
+/* ---- Body (scrollable) ---- */
+
+.cart-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-6);
+}
+
+/* ---- Line list ---- */
+
+.cart-drawer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-drawer__line {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+}
+
+.cart-drawer__line:last-child {
+  border-bottom: none;
+}
+
+/* ---- Line image ---- */
+
+.cart-drawer__line-image {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.cart-drawer__line-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---- Line info ---- */
+
+.cart-drawer__line-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.cart-drawer__line-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: var(--c-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--dur-fast);
+}
+
+.cart-drawer__line-name:hover {
+  opacity: 0.7;
+}
+
+.cart-drawer__line-variant {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ---- Stepper ---- */
+
+.cart-drawer__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cart-drawer__stepper-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--c-muted);
+  border-radius: var(--radius-sm);
+  color: var(--c-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart),
+    border-color     var(--dur-fast) var(--ease-out-quart),
+    color            var(--dur-fast) var(--ease-out-quart);
+}
+
+.cart-drawer__stepper-btn:hover:not(:disabled) {
+  background-color: var(--c-ink);
+  border-color: var(--c-ink);
+  color: var(--c-on-primary);
+}
+
+.cart-drawer__stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cart-drawer__stepper-qty {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--c-ink);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* ---- Line right column ---- */
+
+.cart-drawer__line-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cart-drawer__line-total {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+/* ---- Remove button ---- */
+
+.cart-drawer__remove-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--c-muted);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast);
+  white-space: nowrap;
+}
+
+.cart-drawer__remove-btn:hover {
+  color: var(--c-ink);
+}
+
+/* ---- Empty state ---- */
+
+.cart-drawer__empty {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--c-ink);
+  margin: var(--space-8) 0 var(--space-4);
+  text-align: center;
+}
+
+.cart-drawer__shop-link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  text-decoration: none;
+  border: 1px solid var(--c-ink);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-8);
+  display: inline-block;
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart),
+    color            var(--dur-fast) var(--ease-out-quart);
+}
+
+.cart-drawer__shop-link:hover {
+  background-color: var(--c-ink);
+  color: var(--c-on-primary);
+}
+
+/* ---- Footer ---- */
+
+.cart-drawer__footer {
+  border-top: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+.cart-drawer__total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.cart-drawer__total-label {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.cart-drawer__total-amount {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+
+.cart-drawer__view-link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-align: center;
+  transition: opacity var(--dur-fast);
+}
+
+.cart-drawer__view-link:hover {
+  opacity: 0.7;
+}
+
+.cart-drawer__checkout-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-on-accent);
+  background-color: var(--c-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-8);
+  cursor: not-allowed;
+  opacity: 0.45;
+  width: 100%;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 480px) {
+  .cart-drawer {
+    width: 100vw;
+  }
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer,
+  .cart-drawer__backdrop {
+    transition: none;
+  }
+
+  .cart-drawer__stepper-btn,
+  .cart-drawer__remove-btn,
+  .cart-drawer__shop-link,
+  .cart-drawer__view-link,
+  .cart-drawer__line-name,
+  .cart-drawer__close {
+    transition: none;
+  }
+}

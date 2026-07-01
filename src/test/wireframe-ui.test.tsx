@@ -121,6 +121,11 @@ vi.mock('../ui/contexts/AuthContext', () => ({
 import { useAuth } from '../ui/contexts/AuthContext'
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>
 
+// CartContext mock — Header uses useCart() for the badge count
+vi.mock('../ui/contexts/CartContext', () => ({
+  useCart: vi.fn().mockReturnValue({ count: 0, items: [], loading: false }),
+}))
+
 import { Header } from '../ui/components/Header'
 import { es as t } from '../i18n/es'
 

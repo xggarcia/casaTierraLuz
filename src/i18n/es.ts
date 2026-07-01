@@ -59,6 +59,32 @@ export const es = {
     hasAccount: '¿Ya tienes cuenta? Inicia sesión',
   },
 
+  // Cart
+  cart: {
+    title: 'Tu carrito',
+    subtitle: 'Los productos que estás comprando',
+    empty: 'Tu carrito está vacío.',
+    goShop: 'Ver la colección',
+    loginRequired: 'Debes iniciar sesión para tener un carrito.',
+    goLogin: 'Iniciar sesión',
+    goRegister: 'Registrarse',
+    colProduct: 'Producto',
+    colUnitPrice: 'Precio',
+    colQuantity: 'Cantidad',
+    colLineTotal: 'Total',
+    remove: 'Eliminar',
+    total: 'Total',
+    checkout: 'Finalizar compra',
+    loginToAdd: 'Inicia sesión para comprar',
+    added: 'Añadido al carrito',
+    headerLink: 'Carrito',
+    increase: 'Aumentar cantidad',
+    decrease: 'Disminuir cantidad',
+    close: 'Cerrar',
+    viewFull: 'Ver carrito completo',
+    updateError: 'No se pudo actualizar el carrito. Vuelve a intentarlo.',
+  },
+
   // Admin
   admin: {
     title: 'Panel de administración',

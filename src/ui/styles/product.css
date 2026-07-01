@@ -138,16 +138,6 @@
   text-wrap: balance;
 }
 
-.pdp__short-desc {
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
-  line-height: 1.65;
-  color: var(--c-muted);
-  margin: 0;
-  max-width: 48ch;
-  text-wrap: pretty;
-}
-
 /* ---- Price ---- */
 
 .pdp__price-block {
@@ -171,106 +161,151 @@
   color: var(--c-muted);
 }
 
-/* ---- Variant selector ---- */
+/* ---- Attribute pickers (color / scent) ----
+   Color and scent are independent axes on the same variant matrix, so they
+   get two separate controls: swatches for color (the visual attribute) and
+   text chips for scent (not visual — needs a name). Selecting from either
+   resolves to the matching variant; the other picker's options gray out and
+   read as unavailable/agotado (struck through) when a combination doesn't
+   exist or is out of stock, so an invalid pair never resolves silently. */
 
-.pdp__variants-label {
+.pdp__attr-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+
+.pdp__attr-label {
   font-family: var(--font-body);
   font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--c-muted);
-  margin: 0 0 var(--space-3);
-  display: block;
 }
 
-.pdp__variant-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.pdp__variant-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  background-color: transparent;
-  border: 1px solid oklch(0.84 0.010 75);
-  border-radius: var(--radius-md);
-  cursor: pointer;
+.pdp__attr-value {
   font-family: var(--font-body);
-  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--c-ink);
+}
+
+/* Color swatches */
+
+.pdp__swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.pdp__swatch {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  border: 1px solid oklch(0.20 0.025 52 / 0.12);
+  cursor: pointer;
   transition:
-    border-color var(--dur-fast),
-    background-color var(--dur-fast);
+    box-shadow var(--dur-fast) var(--ease-out-quart),
+    transform  var(--dur-fast) var(--ease-out-quart);
 }
 
-.pdp__variant-btn:hover {
-  border-color: var(--c-ink);
-  background-color: var(--c-surface);
+/* Expand the tap target to 44x44px without growing the 32px swatch itself */
+.pdp__swatch::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
-.pdp__variant-btn--selected {
-  border-color: var(--c-ink);
-  border-width: 2px;
-  background-color: var(--c-surface);
+.pdp__swatch:hover:not(:disabled) {
+  transform: translateY(-2px);
 }
 
-.pdp__variant-btn--unavailable {
-  opacity: 0.4;
+.pdp__swatch:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 3px;
+}
+
+.pdp__swatch--selected {
+  box-shadow:
+    0 0 0 2px var(--c-bg),
+    0 0 0 4px var(--c-ink);
+}
+
+.pdp__swatch--unavailable {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-.pdp__variant-btn--unavailable:hover {
-  border-color: oklch(0.84 0.010 75);
-  background-color: transparent;
+.pdp__swatch--unavailable:hover {
+  transform: none;
 }
 
-.pdp__variant-swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  border: 1px solid oklch(0.20 0.025 52 / 0.12);
+/* Scent chips */
+
+.pdp__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.pdp__variant-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.pdp__variant-name {
-  font-size: var(--text-base);
+.pdp__chip {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--c-ink);
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: transparent;
+  border: 1px solid oklch(0.84 0.010 75);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition:
+    border-color     var(--dur-fast) var(--ease-out-quart),
+    background-color var(--dur-fast) var(--ease-out-quart);
 }
 
-.pdp__variant-availability {
-  font-size: var(--text-xs);
-  color: var(--c-muted);
-  display: block;
-  margin-top: 2px;
+.pdp__chip:hover:not(:disabled) {
+  border-color: var(--c-ink);
+  background-color: var(--c-surface);
 }
 
-.pdp__variant-availability--out {
-  color: oklch(0.52 0.12 25); /* muted red-orange */
+.pdp__chip:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
 }
 
-.pdp__variant-price {
-  font-size: var(--text-sm);
+.pdp__chip--selected {
+  border-width: 2px;
+  border-color: var(--c-ink);
+  background-color: var(--c-surface);
   font-weight: 600;
-  color: var(--c-ink);
-  white-space: nowrap;
-  flex-shrink: 0;
+}
+
+.pdp__chip--unavailable {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-color: oklch(0.60 0.010 60);
+}
+
+/* Resolved-combination availability */
+
+.pdp__availability {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-muted);
+  margin: 0;
+}
+
+.pdp__availability--out {
+  color: oklch(0.52 0.12 25); /* muted red-orange */
 }
 
 /* ---- CTA button ---- */
@@ -311,13 +346,8 @@
   cursor: not-allowed;
 }
 
-/* ---- Long description ---- */
-
-.pdp__long-desc {
-  padding-top: var(--space-16);
-  border-top: 1px solid oklch(0.87 0.010 75);
-  margin-top: var(--space-8);
-}
+/* ---- Long description (now the details-column description; the parent
+   .pdp__details flex gap handles spacing, no wrapper margin needed) ---- */
 
 .pdp__long-desc-prose {
   font-family: var(--font-body);

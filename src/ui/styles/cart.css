@@ -1,0 +1,408 @@
+/* ============================================================
+   CASA TIERRA LUZ — Cart Page Styles
+   Requires tokens from theme.css
+   Auth-gate and empty-state reuse auth-* classes from auth.css
+   ============================================================ */
+
+/* ---- Page shell ---- */
+
+.cart__page {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-8) var(--space-20);
+}
+
+/* ---- Heading block ---- */
+
+.cart__heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--c-ink);
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+
+.cart__subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--c-muted);
+  margin: 0 0 var(--space-8);
+  line-height: 1.5;
+}
+
+/* ---- Empty state ---- */
+
+.cart__empty {
+  text-align: center;
+  padding: var(--space-24) 0;
+}
+
+.cart__empty-text {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+  margin: 0 0 var(--space-4);
+  text-wrap: balance;
+}
+
+.cart__empty-link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  text-decoration: none;
+  border: 1px solid var(--c-ink);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-8);
+  display: inline-block;
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart),
+    color            var(--dur-fast) var(--ease-out-quart);
+}
+
+.cart__empty-link:hover {
+  background-color: var(--c-ink);
+  color: var(--c-on-primary);
+}
+
+.cart__empty-link:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 3px;
+}
+
+/* ---- Line list ---- */
+
+.cart__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cart__line {
+  display: grid;
+  grid-template-columns: 72px 1fr auto auto auto auto;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+}
+
+.cart__line:first-child {
+  border-top: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);
+}
+
+/* ---- Line image ---- */
+
+.cart__line-image {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.cart__line-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---- Line info ---- */
+
+.cart__line-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cart__line-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--c-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--dur-fast);
+}
+
+.cart__line-name:hover {
+  opacity: 0.7;
+}
+
+.cart__line-name:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+.cart__line-variant {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--c-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Line unit price ---- */
+
+.cart__line-price {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+
+/* ---- Quantity stepper ---- */
+
+.cart__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cart__stepper-btn {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--c-muted);
+  border-radius: var(--radius-sm);
+  color: var(--c-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart),
+    border-color     var(--dur-fast) var(--ease-out-quart),
+    color            var(--dur-fast) var(--ease-out-quart);
+}
+
+/* Expand the tap target to 44x44px (WCAG target size) without growing
+   the 2rem visual button — the button's own box stays compact and tight
+   against the qty number, per the density this row needs. */
+.cart__stepper-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.cart__stepper-btn:hover:not(:disabled) {
+  background-color: var(--c-ink);
+  border-color: var(--c-ink);
+  color: var(--c-on-primary);
+}
+
+.cart__stepper-btn:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+.cart__stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cart__stepper-qty {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--c-ink);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* ---- Line total ---- */
+
+.cart__line-total {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+/* ---- Remove button ---- */
+
+.cart__remove-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--c-muted);
+  background: transparent;
+  border: none;
+  padding: var(--space-2) 0;
+  margin: calc(var(--space-2) * -1) 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast);
+  white-space: nowrap;
+}
+
+.cart__remove-btn:hover {
+  color: var(--c-ink);
+}
+
+.cart__remove-btn:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+/* ---- Footer (total + CTA) ---- */
+
+.cart__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+}
+
+.cart__total-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.cart__total-label {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.cart__total-amount {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+
+/* Disabled checkout placeholder — mirrors pdp__cta disabled state */
+.cart__checkout-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-on-accent);
+  background-color: var(--c-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-8);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.cart__checkout-btn:focus-visible {
+  outline: 2px solid var(--c-ink);
+  outline-offset: 2px;
+}
+
+/* ---- Error banner ---- */
+
+.cart__error {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: oklch(from var(--c-accent) calc(l - 0.08) calc(c - 0.08) h);
+  background-color: oklch(from var(--c-accent) l c h / 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-6);
+  line-height: 1.5;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 700px) {
+  .cart__page {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .cart__line {
+    grid-template-columns: 56px 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: var(--space-3);
+  }
+
+  .cart__line-image {
+    width: 56px;
+    height: 56px;
+    grid-row: span 3;
+  }
+
+  .cart__line-info {
+    grid-column: 2 / 4;
+  }
+
+  .cart__line-price {
+    display: none;
+  }
+
+  .cart__stepper {
+    grid-column: 2;
+  }
+
+  .cart__line-total {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .cart__remove-btn {
+    grid-column: 2 / 4;
+  }
+
+  .cart__footer {
+    align-items: stretch;
+  }
+
+  .cart__total-row {
+    justify-content: space-between;
+  }
+
+  .cart__checkout-btn {
+    width: 100%;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+/* ---- Reduced motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cart__stepper-btn,
+  .cart__remove-btn,
+  .cart__empty-link,
+  .cart__line-name {
+    transition: none;
+  }
+}

@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useCart } from '../contexts/CartContext'
+import { es as i18n } from '../../i18n/es'
 
 export function Header() {
   const { user, isAdmin, signOut } = useAuth()
+  const { count, openDrawer } = useCart()
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const isCartPage = location.pathname === '/carrito'
 
   const [scrolled, setScrolled] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -35,6 +39,14 @@ export function Header() {
         <Link to="/contacto" className="site-header__link">Contacto</Link>
         {user ? (
           <>
+            <button
+              type="button"
+              className="site-header__link"
+              onClick={isCartPage ? undefined : openDrawer}
+              aria-disabled={isCartPage}
+            >
+              {count > 0 ? `${i18n.cart.headerLink} (${count})` : i18n.cart.headerLink}
+            </button>
             {isAdmin && (
               <Link to="/admin" className="site-header__link">Admin</Link>
             )}

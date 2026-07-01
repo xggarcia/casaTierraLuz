@@ -1,150 +1,126 @@
-# Test Results — Category filter (store) + Category assignment (admin)
+# Test Results: Cart Side Drawer (Mini-Cart)
 
-Audit date: 2026-06-30
-Method: automated tests (Vitest) + `npx tsc --noEmit`
+## Baseline Verification
 
----
+The coder claimed 94 failures across 6 files before this change, and 35 failures across 3 files after. Independently verified by running `git stash` and restoring:
 
-## Overall verdict: PASS
+- **Before (stashed):** 93 failures, 6 files failing
+- **After (restored):** 35 failures, 3 files failing (wireframe-ui.test.tsx, Header.test.tsx, admin-crud.test.ts)
 
-All 113 new tests pass. TypeScript compiles clean. The 35 failures in the existing suite are pre-existing regressions unrelated to this feature (confirmed by stashing the feature code and reproducing the same 35 failures on base commit `ee1404a`).
+This matches the coder's claim (the 1-count difference in the baseline is within test-isolation noise — both runs have the same 6 failing files and the same categories of failure).
 
----
-
-## 1. TypeScript compilation
-
-**PASS** — `npx tsc --noEmit` exits 0 with no output.
-
----
-
-## 2. New test file
-
-**File:** `src/test/category-filter.test.ts`
-**Result:** 113 / 113 passed
+All 35 pre-existing failures are confirmed unrelated to this change:
+- `wireframe-ui.test.tsx`: checks for `ui-*` class names and `ui-spacer` spans that the final implementation never used
+- `Header.test.tsx`: checks for i18n nav labels (`t.nav.products`, `t.nav.login`, `t.nav.register`) that the Header does not actually render (it uses hardcoded `'Colección'`, `'Acceder'` etc.)
+- `admin-crud.test.ts`: file-read error on a missing path
 
 ---
 
-## 3. Checks by area
+## Coverage Assessment of the Coder's New Test File
 
-### 3.1 SupabaseCategoryRepository — four new methods (unit tests + source checks)
+`src/test/CartDrawer.test.tsx` as submitted had 2 tests only:
+1. Product name + total label render with items when open
+2. Empty state renders without items
 
-| Check | Result |
-|---|---|
-| `getAllActive()` — happy path maps Category objects, description null handled | PASS |
-| `getAllActive()` — `.eq('is_active', true)` called | PASS |
-| `getAllActive()` — `.order('id', { ascending: true })` called | PASS |
-| `getAllActive()` — returns `[]` when no active categories | PASS |
-| `getAllActive()` — throws on Supabase error | PASS |
-| `getCategoryIdsForProduct()` — returns `number[]` of category_ids | PASS |
-| `getCategoryIdsForProduct()` — queries `product_categories` filtered by `product_id` | PASS |
-| `getCategoryIdsForProduct()` — returns `[]` when no rows | PASS |
-| `getCategoryIdsForProduct()` — throws on error | PASS |
-| `setProductCategories()` — happy path: delete by product_id then insert | PASS |
-| `setProductCategories()` — empty set: delete only, no insert | PASS |
-| `setProductCategories()` — throws when delete step errors | PASS |
-| `setProductCategories()` — throws when insert step errors | PASS |
-| `setProductCategories()` — keyed by `product_id`, NOT `category_id` | PASS |
-| `getProductCategoryMap()` — reduces rows into `Record<number, number[]>` | PASS |
-| `getProductCategoryMap()` — selects `product_id, category_id` | PASS |
-| `getProductCategoryMap()` — returns `{}` when no rows | PASS |
-| `getProductCategoryMap()` — single-element array for one-category product | PASS |
-| `getProductCategoryMap()` — throws on error | PASS |
+This is insufficient coverage for the spec's stated load-bearing behaviors. The spec explicitly flags auto-open on success (and NOT on early-return paths) as critical. The following were untested:
 
-### 3.2 Column names vs `001_initial_schema.sql`
-
-| Check | Result |
-|---|---|
-| `getCategoryIdsForProduct` selects column `category_id` | PASS |
-| `getCategoryIdsForProduct` filters on column `product_id` | PASS |
-| `getProductCategoryMap` selects `product_id, category_id` | PASS |
-| `setProductCategories` delete uses `product_id` key | PASS |
-| `setProductCategories` insert rows have `product_id` and `category_id` keys | PASS |
-| `getAllActive` uses `.eq('is_active', true)` | PASS |
-| Existing methods `getAllForAdmin`, `getProductIds`, `setProducts` not renamed | PASS |
-
-### 3.3 ProductsPage.tsx
-
-| Check | Result |
-|---|---|
-| Imports `categoryRepository`, `Category` type, `es as i18n` | PASS |
-| `categories`, `productCategoryMap`, `activeCategoryId` state declared | PASS |
-| Mount uses `Promise.all([getAll, getAllActive, getProductCategoryMap])` | PASS |
-| `.catch(() => setError(true))` wraps the `Promise.all` | PASS |
-| `.finally(() => setLoading(false))` wraps the `Promise.all` | PASS |
-| `handleFilter` resets `visibleCount` to `PAGE_SIZE` | PASS |
-| `handleFilter` resets `prevVisibleRef.current` to `PAGE_SIZE` | PASS |
-| `filteredProducts` checks `activeCategoryId === null` | PASS |
-| `filteredProducts` coalesces `productCategoryMap[p.id] ?? []` | PASS |
-| GSAP grid entrance dependency array is `[allProducts, activeCategoryId]` | PASS |
-| Filter nav only rendered when `categories.length > 0` | PASS |
-| Filter nav has `aria-label` | PASS |
-| "Todas" chip uses `i18n.products.filterAll` | PASS |
-| "Todas" chip `onClick={() => handleFilter(null)}` | PASS |
-| Category chips use `catalog__filter` and `catalog__filter--active` classes | PASS |
-| Category chip `onClick={() => handleFilter(category.id)}` | PASS |
-| Per-category empty state uses `i18n.products.filterEmpty` (inline, not full-page) | PASS |
-| `visibleProducts`, `hasMore`, `remaining` derived from `filteredProducts` | PASS |
-
-### 3.4 TabProducts.tsx
-
-| Check | Result |
-|---|---|
-| Imports `categoryRepository`, `Category` type | PASS |
-| `availableCategories`, `selectedCategoryIds`, `categoriesSaving`, `categoriesError` state declared | PASS |
-| `loadVariantData` includes `getAllActive()` and `getCategoryIdsForProduct(productId)` | PASS |
-| `loadVariantData` sets `availableCategories` and `selectedCategoryIds` | PASS |
-| `openNew` resets all three category states | PASS |
-| `openEdit` resets `categoriesError` | PASS |
-| `cancelEdit` resets `categoriesError` | PASS |
-| `handleToggleCategory` adds/removes via `prev.includes(categoryId)` | PASS |
-| `handleSaveCategories` guards `editing === 'new' || editing === null` | PASS |
-| `handleSaveCategories` calls `setProductCategories(editing.id, selectedCategoryIds)` | PASS |
-| `handleSaveCategories` sets `categoriesError` on catch | PASS |
-| `handleSaveCategories` sets `categoriesSaving(false)` in finally | PASS |
-| Categories panel inside `editingProductId !== null` block | PASS |
-| Panel renders `i18n.admin.categoriesTitle` and `i18n.admin.categoriesSave` | PASS |
-| Panel shows `adm-alert` for `categoriesError` | PASS |
-| Checkboxes bound to `selectedCategoryIds.includes(c.id)` | PASS |
-| Checkbox `onChange` calls `handleToggleCategory(c.id)` | PASS |
-| Save button `disabled={categoriesSaving}` | PASS |
-| Save button shows `i18n.admin.saving` when saving | PASS |
-| Save button `onClick={handleSaveCategories}` | PASS |
-
-### 3.5 i18n — `src/i18n/es.ts`
-
-| Check | Result |
-|---|---|
-| `products.filterAll` exists and equals `'Todas'` | PASS |
-| `products.filterEmpty` exists and is non-empty | PASS |
-| `admin.categoriesTitle` exists and equals `'Categorías'` | PASS |
-| `admin.categoriesSave` exists and equals `'Guardar categorías'` | PASS |
-| No new key has an empty string value | PASS |
-
-### 3.6 `src/ui/styles/catalog.css`
-
-| Check | Result |
-|---|---|
-| `.catalog__filters` defined with `display: flex`, `flex-wrap: wrap`, `margin-bottom` | PASS |
-| `.catalog__filter` defined with `border` and `cursor: pointer` | PASS |
-| `.catalog__filter:hover` defined | PASS |
-| `.catalog__filter--active` defined using `var(--c-ink)` | PASS |
-| `.catalog__filter` in `prefers-reduced-motion` `transition: none !important` group | PASS |
-
-### 3.7 Source integrity — `SupabaseCategoryRepository.ts`
-
-| Check | Result |
-|---|---|
-| All four new methods present with correct signatures and return types | PASS |
-| `categoryRepository` singleton exported | PASS |
+- Auto-open on `addToCart` success
+- NOT opening on `!user` early return
+- NOT opening on `clampedAdd < 1` early return
+- Escape key closes the drawer
+- Body scroll lock applied while open, restored on close and on unmount
+- Backdrop click calls `closeDrawer`
+- Close button (×) calls `closeDrawer`
+- Stepper − and + buttons call `setQuantity` with correct arguments
+- Stepper + disabled at stock cap
+- Remove button calls `removeItem(item.id)`
+- "Ver carrito completo" link goes to `/carrito` and calls `closeDrawer`
+- Product name link goes to `/producto/:id` and calls `closeDrawer`
+- Header cart trigger is a `<button>` (not a `<Link to="/carrito">`) and clicking it opens the drawer
+- Drawer footer absent when cart is empty
+- Checkout button disabled + `aria-disabled="true"`
+- `aria-hidden` toggle on the aside (closed = hidden from a11y tree)
+- Always rendered (no null early-return) for CSS slide transition
 
 ---
 
-## 4. Pre-existing failures (not caused by this feature)
+## New Tests Added
 
-**35 tests** in three pre-existing files fail. Confirmed pre-existing by stashing the feature code and reproducing the same 35 failures on base commit `ee1404a`.
+Two new test files were written:
 
-- `src/test/wireframe-ui.test.tsx` — tests for old wireframe CSS classes (`ui-page`, `ui-header`, `ui-list`) superseded when the catalog redesign landed.
-- `src/test/Header.test.tsx` — tests for old `ui-header` nav structure.
-- `src/test/admin-crud.test.ts` — the `002_admin_active_flags.sql` migration content block fails because it pre-dates or conflicts with the current migration file structure.
+### `src/test/CartDrawer.test.tsx` (replaced)
+37 tests covering the CartDrawer component directly. All pass.
 
-These failures are not regressions introduced by this feature and do not affect the PASS verdict.
+Groups:
+- Open with items (happy path) — 6 tests
+- Empty cart state — 3 tests
+- Logged-out user — 3 tests
+- Escape key closes drawer — 3 tests
+- Body scroll lock — 3 tests
+- Close triggers (backdrop + close button) — 2 tests
+- Stepper buttons — 5 tests
+- Remove button — 2 tests
+- "Ver carrito completo" link — 2 tests
+- Product name link — 2 tests
+- Checkout button — 2 tests
+- Title display — 2 tests
+- Variant label — 2 tests
+
+### `src/test/CartDrawer-context.test.tsx` (new)
+13 tests covering CartContext drawer state and the Header button change. 12 pass, 1 intentionally fails (see below).
+
+Groups:
+- CartContext openDrawer / closeDrawer primitives — 3 tests
+- addToCart auto-opens drawer on success — 2 tests
+- addToCart does NOT open drawer on early-return paths — 4 tests (3 pass, 1 fails — see bug)
+- Header cart button opens drawer instead of navigating — 4 tests
+
+---
+
+## Bug Found: Drawer Opens on Repository Error (Spec Violation)
+
+**File:** `src/ui/contexts/CartContext.tsx`, lines 70–76
+
+**Failing test:**
+```
+CartContext – addToCart does NOT open drawer on early-return paths
+  > drawer stays closed when addOrIncrement throws (repository error is not a successful add)
+```
+
+**What the spec says:**
+> "only open when something was actually added — i.e. do NOT open if the early return (clampedAdd < 1, or !user) was hit. Place setIsDrawerOpen(true) on the success path only."
+
+**What the implementation does:**
+
+```ts
+const addToCart = async (variantId: number, quantity = 1) => {
+  if (!user) return                          // early return ✓ (drawer stays closed)
+  try {
+    // ...
+    if (clampedAdd < 1) return              // early return ✓ (drawer stays closed)
+    await cartRepository.addOrIncrement(...)
+  } catch {
+    // swallows error, falls through
+  }
+  await refresh()
+  setIsDrawerOpen(true)                     // ← BUG: reached even when catch fired
+}
+```
+
+`setIsDrawerOpen(true)` sits outside the `try` block, so it fires on both the success path AND when `addOrIncrement` throws. On a network error or DB constraint violation, the item was not added but the drawer opens anyway.
+
+**Fix required:** Move `setIsDrawerOpen(true)` inside the `try` block, after the `await cartRepository.addOrIncrement(...)` call and before or after `await refresh()`, but not after the `catch`.
+
+---
+
+## Full Suite Summary
+
+| Condition | Files failing | Tests failing | Tests passing |
+|-----------|--------------|---------------|---------------|
+| Before this feature (stashed) | 6 | 93 | 518 |
+| After feature, before new tests | 3 | 35 | 576 |
+| After new tests (final) | **4** | **36** | **623** |
+
+The increase from 35 to 36 failures is the one intentionally failing test that exposes the spec violation above. All other new tests pass (49 new passing tests added: 37 in CartDrawer.test.tsx + 12 in CartDrawer-context.test.tsx).
+
+**Status: PIPELINE PAUSED — reviewer action required on the bug above before this can ship.**

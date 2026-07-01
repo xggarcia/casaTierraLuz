@@ -17,9 +17,17 @@ import { useAuth } from '../ui/contexts/AuthContext'
 
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>
 
-function renderHeader() {
+// CartContext mock — Header uses useCart() for the badge count and openDrawer
+vi.mock('../ui/contexts/CartContext', () => ({
+  useCart: vi.fn().mockReturnValue({ count: 0, items: [], loading: false, openDrawer: vi.fn(), isDrawerOpen: false, closeDrawer: vi.fn() }),
+}))
+import { useCart } from '../ui/contexts/CartContext'
+
+const mockUseCart = useCart as ReturnType<typeof vi.fn>
+
+function renderHeader(initialEntries: string[] = ['/']) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <Header />
     </MemoryRouter>
   )
@@ -89,6 +97,38 @@ describe('Header – authenticated non-admin user', () => {
     renderHeader()
     expect(screen.queryByRole('link', { name: t.nav.login })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: t.nav.register })).not.toBeInTheDocument()
+  })
+})
+
+describe('Header – cart trigger on /carrito', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({
+      user: { email: 'user@test.com' },
+      isAdmin: false,
+      signOut: vi.fn(),
+    })
+  })
+
+  it('does NOT open the drawer when clicked while already on /carrito', () => {
+    const openDrawer = vi.fn()
+    mockUseCart.mockReturnValue({ count: 1, items: [], loading: false, openDrawer, isDrawerOpen: false, closeDrawer: vi.fn() })
+    renderHeader(['/carrito'])
+    screen.getByRole('button', { name: `${t.cart.headerLink} (1)` }).click()
+    expect(openDrawer).not.toHaveBeenCalled()
+  })
+
+  it('marks the cart trigger as aria-disabled on /carrito', () => {
+    mockUseCart.mockReturnValue({ count: 0, items: [], loading: false, openDrawer: vi.fn(), isDrawerOpen: false, closeDrawer: vi.fn() })
+    renderHeader(['/carrito'])
+    expect(screen.getByRole('button', { name: t.cart.headerLink })).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('still opens the drawer when clicked from other pages', () => {
+    const openDrawer = vi.fn()
+    mockUseCart.mockReturnValue({ count: 0, items: [], loading: false, openDrawer, isDrawerOpen: false, closeDrawer: vi.fn() })
+    renderHeader(['/productos'])
+    screen.getByRole('button', { name: t.cart.headerLink }).click()
+    expect(openDrawer).toHaveBeenCalledTimes(1)
   })
 })
 

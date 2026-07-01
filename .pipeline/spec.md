@@ -1,193 +1,219 @@
-# Implementation Spec — Category filter (store) + Category assignment (admin)
+# Spec: Cart Side Drawer (Mini-Cart)
 
-## Summary
-
-Two features, one spec.
-
-- **Feature 1 — Category filter in the public catalog.** `/productos` (rendered by `ProductsPage`) must display the active categories as a filter bar above the product grid and let shoppers filter products by clicking a category. Clicking a category shows only products assigned to it. An "Todas" (All) chip shows everything (default state).
-- **Feature 2 — Category assignment in the admin product form.** In `TabProducts`, when editing an existing product, the admin must be able to assign one or more categories to that product, inline in the right column of the edit panel (alongside the existing variants panel). Edit mode loads current assignments; saving writes the new set.
-
----
+Add a slide-out side drawer (mini-cart) so users can view and edit cart contents without navigating to `/carrito`. It opens when the user clicks the "Carrito" link in the Header, and auto-opens when an item is added from the product page. The existing `/carrito` full page stays unchanged and remains reachable via a link inside the drawer.
 
 ## OPEN QUESTIONS
 
-None block implementation. The decisions below resolve the two ambiguities in the request:
-
-1. **Repository method names differ from the request brief.** The brief said `SupabaseCategoryRepository` has `getAll()`, `toggleActive()`, `delete()`. The actual file (`src/infrastructure/repositories/SupabaseCategoryRepository.ts`) exposes `getAllForAdmin()`, `setActive()`, `remove()`, plus `create()`, `getProductIds()`, `setProducts()`. There is **no public (active-only) category fetch** and **no method to get a single product's categories**. This spec adds the missing methods (see file 1). Do NOT rename existing methods.
-
-2. **Feature 2 UX pattern.** Two options existed: (a) auto-open an assign step after create like `TabCategories` does; (b) inline checkboxes in the product edit panel. **Chosen: inline checkbox panel in the product edit view**, because `TabProducts` already lazily loads side data (variants, colors, scents) once a product exists (`editingProductId !== null`) and renders it in a right-hand panel. Categories follow the same lifecycle as variants. The create flow already auto-transitions into edit mode after `create()` (see `handleSubmit` lines 149-158), so a newly created product lands in the edit view where the category panel is available. No separate assign screen is needed.
-
----
-
-## Data model (confirmed, no migrations)
-
-- `categories(id SERIAL, name JSONB, description JSONB, image_url TEXT, is_active BOOLEAN, created_at)`.
-- `product_categories(product_id INTEGER, category_id INTEGER, PRIMARY KEY(product_id, category_id))` — join table, columns are exactly `product_id` and `category_id`, both `ON DELETE CASCADE`.
-- RLS (from `001_initial_schema.sql`): `product_categories` has `Public read product_cat` (SELECT USING true) and `Admin manage product_cat` (FOR ALL USING is_admin()). `categories` has `Public read categories` for `is_active = true OR is_admin()`. So the public catalog can read active `categories` and all `product_categories` rows without auth.
+None blocking. Defaults chosen below (stated inline). Notably:
+- Auto-open on add-to-cart: YES, the drawer opens when an item is added from `ProductDetailPage`. This replaces the existing inline `addedFeedback` text on that page (removed — see task 5).
+- Drawer supplements, does NOT replace, the `/carrito` page. Drawer has a "Ver carrito completo" link to `/carrito` and a disabled "Finalizar compra" button (mirrors CartPage).
+- The Header cart link becomes a `<button>` that opens the drawer instead of a `<Link to="/carrito">`. Full page still reachable from inside the drawer.
 
 ---
 
-## Files to MODIFY
+## State: open/close lives in CartContext
 
-### 1. `src/infrastructure/repositories/SupabaseCategoryRepository.ts`
+The drawer must be openable from both `Header` and `ProductDetailPage`, so the open state goes in `CartContext` (single provider already wrapping the app in `App.tsx`).
 
-Add four methods to the existing `SupabaseCategoryRepository` class. Do NOT change existing methods. Existing `mapCategory` and the `DbCategory` type are reused.
+### Modify `src/ui/contexts/CartContext.tsx`
 
-- **`async getAllActive(): Promise<Category[]>`**
-  - Copy `getAllForAdmin()` but add `.eq('is_active', true)`.
-  - Select `'id, name, description, is_active'`, order by `id` ascending, map via `mapCategory`.
-  - Model the active filter on `SupabaseProductRepository.getAll()` (line 106-114).
+Add to `CartContextValue` interface:
+```ts
+  isDrawerOpen: boolean
+  openDrawer: () => void
+  closeDrawer: () => void
+```
 
-- **`async getCategoryIdsForProduct(productId: number): Promise<number[]>`**
-  - Mirror of existing `getProductIds(categoryId)` (lines 59-66), opposite direction.
-  - `.from('product_categories').select('category_id').eq('product_id', productId)`.
-  - `return (data as { category_id: number }[]).map(r => r.category_id)`.
+Implementation:
+- Add `const [isDrawerOpen, setIsDrawerOpen] = useState(false)`.
+- `openDrawer = () => setIsDrawerOpen(true)`
+- `closeDrawer = () => setIsDrawerOpen(false)`
+- Include all three in the provider `value`.
+- In `addToCart`, after the `await refresh()`, call `setIsDrawerOpen(true)` so any add-to-cart auto-opens the drawer. IMPORTANT: only open when something was actually added — i.e. do NOT open if the early `return` (clampedAdd < 1, or `!user`) was hit. Place `setIsDrawerOpen(true)` on the success path only, before/after `refresh()` but not inside the `clampedAdd < 1` branch and not when `!user`.
 
-- **`async setProductCategories(productId: number, categoryIds: number[]): Promise<void>`**
-  - Same delete-then-insert shape as existing `setProducts` (lines 68-81) but keyed by `product_id`.
-  - Step 1: `.from('product_categories').delete().eq('product_id', productId)` — throw on error.
-  - Step 2: if `categoryIds.length > 0`, `.insert(categoryIds.map(cid => ({ product_id: productId, category_id: cid })))` — throw on error.
-  - NOTE: the existing `setProducts(categoryId, ...)` is keyed by category and would wipe a whole category if used from the product side — do not reuse it here.
-
-- **`async getProductCategoryMap(): Promise<Record<number, number[]>>`**
-  - `.from('product_categories').select('product_id, category_id')` (no filter; RLS allows public read), throw on error.
-  - Reduce rows into `{ [product_id]: number[] }`. Used by the public catalog for client-side filtering in a single query.
-
-### 2. `src/ui/pages/ProductsPage.tsx` — Feature 1
-
-Add client-side category filtering. **Filter client-side on already-loaded products** (do NOT add a per-category Supabase query). Rationale: the catalog already loads all active products in one `getAll()` call and paginates client-side (`PAGE_SIZE = 12`, `visibleCount`). Catalog size is small. Load the product→category map once and filter in memory.
-
-Changes inside the `ProductsPage` component:
-
-- **Imports:** add `categoryRepository` from `'../../infrastructure/repositories/SupabaseCategoryRepository'`, `type { Category }` from `'../../domain/entities/Category'`, and `{ es as i18n }` from `'../../i18n/es'`. (`t` is already imported from `Product`.)
-- **New state:**
-  - `categories: Category[]` (default `[]`) — active categories.
-  - `productCategoryMap: Record<number, number[]>` (default `{}`) — productId → categoryId[].
-  - `activeCategoryId: number | null` (default `null`) — `null` means "Todas" (show all).
-- **Data loading:** replace the mount `useEffect` that calls `productRepository.getAll()` (lines 109-115) with a `Promise.all([productRepository.getAll(), categoryRepository.getAllActive(), categoryRepository.getProductCategoryMap()])`; set `allProducts`, `categories`, `productCategoryMap` respectively. Keep `.catch(() => setError(true))` and `.finally(() => setLoading(false))` wrapping all three.
-- **Derived filtering (in render, after the loading/error/empty guards):**
-  - `filteredProducts = activeCategoryId === null ? allProducts : allProducts.filter(p => (productCategoryMap[p.id] ?? []).includes(activeCategoryId))`.
-  - Replace the downstream `allProducts`-based render values with `filteredProducts`: `visibleProducts = filteredProducts.slice(0, visibleCount)`, `hasMore = visibleCount < filteredProducts.length`, `remaining = Math.min(PAGE_SIZE, filteredProducts.length - visibleCount)`.
-  - Keep the existing `allProducts.length === 0` full-page empty state (the "no products at all" gate) unchanged.
-- **Filter change handler:** define a handler that sets `activeCategoryId` (to a category id or `null`) and resets pagination: `setVisibleCount(PAGE_SIZE)` and `prevVisibleRef.current = PAGE_SIZE`.
-- **GSAP grid entrance:** add `activeCategoryId` to the dependency array of the grid-entrance effect (currently `[allProducts]`, lines 137-148) so cards re-animate on filter change. The "load more" effect (keyed on `visibleCount`) stays as-is.
-- **Filter UI:** render inside the grid `<section>` (line 211), within `.catalog__container`, above `.catalog__grid`, only when `categories.length > 0`:
-  - `<nav className="catalog__filters" aria-label="Filtrar por categoría">`.
-  - First chip "Todas": `<button type="button" className={"catalog__filter" + (activeCategoryId === null ? " catalog__filter--active" : "")} aria-pressed={activeCategoryId === null} onClick={() => handleFilter(null)}>{i18n.products.filterAll}</button>`.
-  - Then one chip per category: label `t(category.name)`, active when `activeCategoryId === category.id`, `onClick={() => handleFilter(category.id)}`.
-- **Empty-per-category state:** when `allProducts.length > 0` but `filteredProducts.length === 0`, render an inline message using `i18n.products.filterEmpty` in place of the grid — keep the masthead and filter bar visible (do NOT use the full-page `catalog-state` block).
-- Leave the existing hardcoded Spanish strings ("Colección", "Ver N más", error/empty copy) as they are; only the two new strings come from i18n.
-
-### 3. `src/ui/pages/admin/TabProducts.tsx` — Feature 2
-
-Add a categories panel to the product edit view, mirroring the variants panel (right column, `editingProductId !== null` block, lines 482-651).
-
-- **Imports:** add `categoryRepository` from `'../../../infrastructure/repositories/SupabaseCategoryRepository'` and `type { Category }` from `'../../../domain/entities/Category'`.
-- **New state:**
-  - `availableCategories: Category[]` (default `[]`).
-  - `selectedCategoryIds: number[]` (default `[]`).
-  - `categoriesSaving: boolean` (default `false`).
-  - `categoriesError: string | null` (default `null`).
-  - Reuse `variantsLoading` for the loading flag (category data loads in the same `Promise.all`).
-- **Loading:** extend `loadVariantData(productId)` (lines 56-70): add `categoryRepository.getAllActive()` and `categoryRepository.getCategoryIdsForProduct(productId)` to the existing `Promise.all`, and in `.then` set `availableCategories` and `selectedCategoryIds`. Keep the existing silent `.catch(() => {})`.
-- **Resets:** in `openNew` (lines 72-84) set `setAvailableCategories([])`, `setSelectedCategoryIds([])`, `setCategoriesError(null)`. In `openEdit` (lines 86-98) set `setCategoriesError(null)` (the `loadVariantData` call repopulates the rest). In `cancelEdit` set `setCategoriesError(null)`.
-- **Toggle handler:** `handleToggleCategory(categoryId: number)` — add/remove the id from `selectedCategoryIds` (copy the shape of `TabCategories.handleToggleProduct`, lines 84-90).
-- **Save handler:** `handleSaveCategories()`:
-  - Guard: return if `editing === 'new' || editing === null`.
-  - `setCategoriesError(null)`, `setCategoriesSaving(true)`; `await categoryRepository.setProductCategories(editing.id, selectedCategoryIds)`; on catch `setCategoriesError(i18n.admin.saveError)`; `finally setCategoriesSaving(false)`.
-  - Independent of `handleSubmit` (saved separately, exactly like variants).
-- **UI:** inside the existing `editingProductId !== null` right-column block, add a second `adm-panel-card` for categories (above or below the variants card):
-  - Header `adm-variants-header` style with `<p className="adm-panel-card__title" style={{ margin: 0 }}>{i18n.admin.categoriesTitle}</p>`.
-  - `categoriesError` → `<div className="adm-alert adm-alert--error">`.
-  - If `variantsLoading` → `<p className="adm-loading">{i18n.loading}</p>`; else if `availableCategories.length === 0` → `<p className="adm-empty">{i18n.admin.emptyList}</p>`; else map categories to `<label className="adm-checkbox-field">` with a checkbox bound to `selectedCategoryIds.includes(c.id)`, `onChange={() => handleToggleCategory(c.id)}`, and `<span className="adm-label">{t(c.name)}</span>`.
-  - Footer `adm-form-footer` with a primary button: `disabled={categoriesSaving}`, text `categoriesSaving ? i18n.admin.saving : i18n.admin.categoriesSave`, `onClick={handleSaveCategories}`.
-- Panel shows only for existing products (`editingProductId !== null`), like variants. New products save first, auto-transition to edit mode, then the panel appears.
-
-### 4. `src/i18n/es.ts`
-
-Add keys (single i18n file confirmed — no `ca.ts` / `en.ts` exist). `Translations` is `typeof es`, so adding keys suffices.
-
-- Under `products:` —
-  - `filterAll: 'Todas'`
-  - `filterEmpty: 'No hay productos en esta categoría.'`
-- Under `admin:` —
-  - `categoriesTitle: 'Categorías'`
-  - `categoriesSave: 'Guardar categorías'`
-
-### 5. `src/ui/styles/catalog.css`
-
-Add filter-bar styles after the masthead block, using existing tokens only (`--c-ink`, `--c-on-primary`, `--c-muted`, `--c-primary`, `--space-*`, `--radius-sm`, `--font-body`, `--text-sm`, `--dur-fast`, `--ease-out-quart`).
-
-- `.catalog__filters` — `display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-8);` (sits in `.catalog__container` above the grid).
-- `.catalog__filter` — pill button: `font-family: var(--font-body); font-size: var(--text-sm);` transparent background, `1px solid` muted border, `border-radius: var(--radius-sm);` `padding: var(--space-2) var(--space-5);` `color: var(--c-ink); cursor: pointer;` transition on background/color/border via `var(--dur-fast) var(--ease-out-quart)`.
-- `.catalog__filter:hover` — subtle fill (`background-color: var(--c-primary)`).
-- `.catalog__filter--active` — `background-color: var(--c-ink); color: var(--c-on-primary); border-color: var(--c-ink);` (mirrors `.catalog__load-more-btn:hover`).
-- Add `.catalog__filter` to the `prefers-reduced-motion` `transition: none !important` group at the bottom of the file.
-
-No admin CSS changes — the categories panel reuses `adm-panel-card`, `adm-variants-header`, `adm-checkbox-field`, `adm-label`, `adm-form-footer`, `adm-btn`, `adm-btn--primary`, `adm-alert`, `adm-empty`, `adm-loading`, all already present.
+Do not change any other existing behavior in this file.
 
 ---
 
-## Component / function breakdown
+## New component: `src/ui/components/CartDrawer.tsx`
 
-| Function | File | Purpose |
-|---|---|---|
-| `getAllActive()` | SupabaseCategoryRepository.ts | Active-only categories for public catalog + admin panel |
-| `getCategoryIdsForProduct(productId)` | SupabaseCategoryRepository.ts | Preselect a product's categories in edit panel |
-| `setProductCategories(productId, categoryIds)` | SupabaseCategoryRepository.ts | Save a product's category set (delete-then-insert by product_id) |
-| `getProductCategoryMap()` | SupabaseCategoryRepository.ts | One-query `{productId: categoryId[]}` for client-side filtering |
-| filter state + bar + `handleFilter` | ProductsPage.tsx | Render chips, filter products client-side, reset pagination |
-| categories panel + `handleToggleCategory` + `handleSaveCategories` | TabProducts.tsx | Inline checkbox assignment in product edit view |
+A fixed-position panel that slides in from the right, plus a full-screen backdrop. Rendered once, globally, from `App.tsx` (see task 4). Reads everything from `useCart()` and `useAuth()`.
+
+### Imports (follow `CartPage.tsx` exactly)
+```ts
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { useCart } from '../contexts/CartContext'
+import { t } from '../../domain/entities/Product'
+import type { CartItem } from '../../domain/entities/Cart'
+import { es as i18n } from '../../i18n/es'
+import '../styles/cart-drawer.css'
+```
+
+### Behavior
+- Read: `const { items, count, isDrawerOpen, closeDrawer, setQuantity, removeItem } = useCart()` and `const { user } = useAuth()`.
+- Copy the `cartVariantLabel(item: CartItem)` helper from `CartPage.tsx` verbatim (module-scope function).
+- Compute `cartTotal` the same way as `CartPage.tsx`: `items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)`.
+- Escape key closes: `useEffect` that adds a `keydown` listener on `window` while `isDrawerOpen` is true; on `Escape` call `closeDrawer()`. Clean up the listener on unmount / when closed.
+- Body scroll lock while open: in the same or a second `useEffect`, when `isDrawerOpen` set `document.body.style.overflow = 'hidden'`; restore to `''` on cleanup.
+- Always render the component (do not early-return `null` when closed) so the CSS slide transition works. Toggle an `--open` modifier class based on `isDrawerOpen` instead.
+
+### Structure (BEM-ish, matches existing `cart__*` / `pdp__*` conventions)
+Root fragment contains a backdrop and the aside:
+
+- Backdrop `<div>`:
+  - class `cart-drawer__backdrop` plus `cart-drawer__backdrop--open` when `isDrawerOpen`.
+  - `onClick={closeDrawer}`.
+  - `aria-hidden="true"`.
+- `<aside>` panel:
+  - class `cart-drawer` plus `cart-drawer--open` when `isDrawerOpen`.
+  - `role="dialog"`, `aria-label={i18n.cart.title}`, `aria-hidden={!isDrawerOpen}`.
+  - Header row (`cart-drawer__header`):
+    - `<h2 className="cart-drawer__title">` = `i18n.cart.title` + count, e.g. `` `${i18n.cart.title} (${count})` `` when count > 0 else `i18n.cart.title`.
+    - Close `<button type="button" className="cart-drawer__close" aria-label={i18n.cart.close} onClick={closeDrawer}>` with `×` (use the `×` glyph, matching the `−` glyph style already used in CartPage steppers).
+  - Body (`cart-drawer__body`):
+    - If `!user`: render a message paragraph `i18n.cart.loginRequired` and a `<Link to="/login" onClick={closeDrawer}>` = `i18n.cart.goLogin`. (User cannot normally reach this state since the Header only shows the trigger when logged in, but guard anyway.)
+    - Else if `items.length === 0`: `<p className="cart-drawer__empty">{i18n.cart.empty}</p>` and a `<Link to="/productos" className="cart-drawer__shop-link" onClick={closeDrawer}>{i18n.cart.goShop}</Link>`.
+    - Else: `<ul className="cart-drawer__list">` of lines. Each `<li key={item.id} className="cart-drawer__line">`:
+      - Image block `cart-drawer__line-image` — same img/placeholder logic as `CartPage.tsx` (`item.image ? <img src alt={t(item.productName)} loading="lazy"/> : <div aria-hidden="true"/>`).
+      - Info block `cart-drawer__line-info`:
+        - `<Link to={`/producto/${item.productId}`} className="cart-drawer__line-name" onClick={closeDrawer}>{t(item.productName)}</Link>`
+        - variant label `<p className="cart-drawer__line-variant">` when `label` truthy.
+        - Stepper (reuse the exact stepper markup/behavior from `CartPage.tsx`, class `cart-drawer__stepper` with `cart-drawer__stepper-btn` / `cart-drawer__stepper-qty`; − button `setQuantity(item.id, item.quantity - 1)`, + button `setQuantity(item.id, item.quantity + 1)` `disabled={item.quantity >= item.stock}`, `aria-label` = `i18n.cart.decrease` / `i18n.cart.increase`).
+      - Right column `cart-drawer__line-right`:
+        - line total `<span className="cart-drawer__line-total">{(item.unitPrice * item.quantity).toFixed(2)}&thinsp;€</span>`
+        - remove `<button type="button" className="cart-drawer__remove-btn" onClick={() => removeItem(item.id)}>{i18n.cart.remove}</button>`
+  - Footer (`cart-drawer__footer`) — render only when `user` and `items.length > 0`:
+    - total row: `<span className="cart-drawer__total-label">{i18n.cart.total}</span>` + `<span className="cart-drawer__total-amount">{cartTotal.toFixed(2)}&thinsp;€</span>`.
+    - `<Link to="/carrito" className="cart-drawer__view-link" onClick={closeDrawer}>{i18n.cart.viewFull}</Link>`
+    - `<button type="button" className="cart-drawer__checkout-btn" disabled aria-disabled="true">{i18n.cart.checkout}</button>` (mirrors CartPage disabled checkout).
+
+Use price formatting `X.toFixed(2)&thinsp;€` exactly as in CartPage.
+
+### Edge cases the component must handle
+- `count === 0` / empty cart: show empty state, no footer.
+- Logged-out fallback: show login prompt, no lines, no footer.
+- Escape key and backdrop click both close.
+- Body scroll restored correctly on unmount even if closed via route change.
+- Reduced motion: handled in CSS (no transitions).
 
 ---
 
-## Data flow
+## New styles: `src/ui/styles/cart-drawer.css`
 
-**Feature 1 (filter):** On `ProductsPage` mount, `Promise.all` loads active products (`getAll`), active categories (`getAllActive`), and the join map (`getProductCategoryMap`). Categories render as chips. Clicking a chip sets `activeCategoryId` and resets `visibleCount`. `filteredProducts` is derived in render from `productCategoryMap[product.id]`. Pagination + GSAP entrance operate on `filteredProducts`.
+Follow the header comment format and token usage of `cart.css`. Requires tokens from `theme.css`. Use ONLY existing CSS custom properties (colors `--c-*`, spacing `--space-*`, `--text-*`, `--radius-*`, motion `--dur-*` / `--ease-*`, z-index `--z-modal-backdrop` / `--z-modal`, `--header-height`, `--font-*`). No hardcoded palette values except where `cart.css` already does (e.g. border color `oklch(from var(--c-primary) calc(l - 0.04) c h)`).
 
-**Feature 2 (assignment):** Opening a product in `TabProducts` (or creating one, which auto-opens edit) triggers `loadVariantData`, which now also fetches `getAllActive()` (available categories) and `getCategoryIdsForProduct(id)` (current selection). Toggling checkboxes updates `selectedCategoryIds`. "Guardar categorías" calls `setProductCategories(productId, selectedCategoryIds)` (delete-then-insert), independent of the main product save.
+Key rules:
+- `.cart-drawer__backdrop`: `position: fixed; inset: 0; background: oklch(0.20 0.025 52 / 0.35); z-index: var(--z-modal-backdrop); opacity: 0; visibility: hidden; transition: opacity var(--dur-base) var(--ease-out-quart), visibility var(--dur-base);`
+- `.cart-drawer__backdrop--open`: `opacity: 1; visibility: visible;`
+- `.cart-drawer`: `position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--c-bg); z-index: var(--z-modal); display: flex; flex-direction: column; transform: translateX(100%); transition: transform var(--dur-base) var(--ease-out-expo); box-shadow: -2px 0 24px oklch(0.20 0.025 52 / 0.12);`
+- `.cart-drawer--open`: `transform: translateX(0);`
+- `.cart-drawer__header`: flex row, `justify-content: space-between; align-items: center;` padding `var(--space-6)`, bottom border matching `cart.css` line border color.
+- `.cart-drawer__title`: `--font-display`, `--text-xl`, `--c-ink`, `margin: 0`.
+- `.cart-drawer__close`: transparent button, `--text-2xl` glyph, `--c-muted` → hover `--c-ink`, `cursor: pointer`, no border, size ~2rem square, `line-height: 1`.
+- `.cart-drawer__body`: `flex: 1; overflow-y: auto; padding: var(--space-4) var(--space-6);`
+- `.cart-drawer__list`: `list-style:none; margin:0; padding:0; display:flex; flex-direction:column;`
+- `.cart-drawer__line`: `display: grid; grid-template-columns: 64px 1fr auto; gap: var(--space-4); padding: var(--space-4) 0; border-bottom: 1px solid oklch(from var(--c-primary) calc(l - 0.04) c h);` (last-child no border via `:last-child`).
+- `.cart-drawer__line-image`: 64px square, `border-radius: var(--radius-sm)`, `overflow: hidden`, `background: var(--c-primary)`; inner `img { width:100%; height:100%; object-fit:cover; display:block; }`.
+- `.cart-drawer__line-info`: column flex, `gap: var(--space-2)`, `min-width:0`.
+- `.cart-drawer__line-name`: `--font-display`, `--text-base`, `--c-ink`, no underline, ellipsis (`white-space:nowrap; overflow:hidden; text-overflow:ellipsis`), hover `opacity:0.7`.
+- `.cart-drawer__line-variant`: `--font-body`, `--text-sm`, `--c-muted`, `margin:0`.
+- Stepper rules: copy the visual spec of `.cart__stepper*` from `cart.css` (same sizing/borders/hover/disabled), renamed to `.cart-drawer__stepper*`. Steppers may be smaller if needed but keep the same style tokens.
+- `.cart-drawer__line-right`: column flex, `align-items: flex-end; gap: var(--space-2); justify-content: space-between;`
+- `.cart-drawer__line-total`: `--font-body`, `--text-base`, `font-weight:600`, `--c-ink`, `white-space:nowrap`.
+- `.cart-drawer__remove-btn`: copy `.cart__remove-btn` style (underlined muted → ink on hover).
+- `.cart-drawer__empty`: centered, `--font-display`, `--text-lg`, `--c-ink`, `margin: var(--space-8) 0 var(--space-4)`; `.cart-drawer__shop-link` styled like `.cart__empty-link`.
+- `.cart-drawer__footer`: `border-top: 1px solid ...`, `padding: var(--space-6)`, `display:flex; flex-direction:column; gap: var(--space-4);`
+- `.cart-drawer__total-row`: flex `justify-content: space-between; align-items: baseline;` — labels/amount styled like `.cart__total-label` / `.cart__total-amount` (may reduce amount to `--text-xl`).
+- `.cart-drawer__view-link`: text-style link, `--font-body`, `--text-sm`, underline, `--c-ink`, centered.
+- `.cart-drawer__checkout-btn`: copy `.cart__checkout-btn` (disabled accent button), `width: 100%`.
+- Responsive: at `max-width: 480px`, `.cart-drawer { width: 100vw; }`.
+- Reduced motion block: `@media (prefers-reduced-motion: reduce) { .cart-drawer, .cart-drawer__backdrop { transition: none; } }` plus disable transitions on stepper/remove/name like `cart.css` does.
+
+Note the drawer sits above the header (`--z-modal` = 400 > header `--z-sticky` = 200), which is intended.
 
 ---
 
-## Edge cases the implementation MUST handle
+## Task 4 — Mount drawer globally: `src/App.tsx`
 
-1. **No categories exist** — `ProductsPage`: do not render the filter bar (`categories.length === 0` guard). `TabProducts`: categories card shows `emptyList`.
-2. **Category with zero products** — `ProductsPage`: keep masthead + filter bar, show `filterEmpty` inline (not the full-page empty state).
-3. **Filter change resets pagination** — set `visibleCount = PAGE_SIZE` and `prevVisibleRef.current = PAGE_SIZE` so the "load more" count is correct.
-4. **Product with no categories** — appears only under "Todas"; `productCategoryMap[id]` is `undefined` → coalesce to `[]`.
-5. **Inactive categories** — excluded from both the public filter and the admin assignment list (`getAllActive`). A product still assigned to a now-inactive category is unaffected in the DB but won't surface a chip; acceptable.
-6. **Saving an empty category set** — `setProductCategories` handles `categoryIds.length === 0` (delete only, skip insert), matching the existing `setProducts` guard.
-7. **New product before first save** — categories panel hidden until `editingProductId !== null`; create flow auto-transitions to edit mode, so the panel becomes available without extra navigation.
-8. **Load failure** — `ProductsPage`: existing `catch(() => setError(true))` must wrap the whole `Promise.all`. `TabProducts`: category load failure must not blank the page; reuse the existing silent `.catch(() => {})` in `loadVariantData`.
-9. **prefers-reduced-motion** — filter chips have no GSAP animation; only their CSS transitions must be disabled under the reduced-motion query.
+Add `import { CartDrawer } from './ui/components/CartDrawer'` and render `<CartDrawer />` inside `<BrowserRouter>`, as a sibling right after `<Header />` and before `<main className="app-body">`. It must be inside `CartProvider` (it already is) and inside `BrowserRouter` (because it uses `<Link>`).
 
 ---
 
-## Patterns to copy (named)
+## Task 5 — Header trigger: `src/ui/components/Header.tsx`
 
-- **Checkbox assignment list + toggle handler:** `src/ui/pages/admin/TabCategories.tsx` (`handleToggleProduct`, the `adm-checkbox-field` list).
-- **Delete-then-insert join write:** existing `setProducts` in `SupabaseCategoryRepository.ts`.
-- **Active-only fetch:** `getAll()` in `SupabaseProductRepository.ts` (`.eq('is_active', true)`).
-- **Right-column lazy-loaded panel in product edit view:** the variants panel in `src/ui/pages/admin/TabProducts.tsx` (`loadVariantData`, the `editingProductId !== null` block, `adm-panel-card` + `adm-variants-header`).
-- **Client-side pagination + GSAP entrance:** already in `ProductsPage.tsx`; extend, do not rewrite.
+Replace the authenticated cart `<Link to="/carrito">` with a `<button>` that opens the drawer.
+
+- Add `openDrawer` to the `useCart()` destructure: `const { count, openDrawer } = useCart()`.
+- Replace:
+  ```tsx
+  <Link to="/carrito" className="site-header__link">
+    {count > 0 ? `Carrito (${count})` : 'Carrito'}
+  </Link>
+  ```
+  with:
+  ```tsx
+  <button
+    type="button"
+    className="site-header__link"
+    onClick={openDrawer}
+  >
+    {count > 0 ? `${i18n.cart.headerLink} (${count})` : i18n.cart.headerLink}
+  </button>
+  ```
+- Add `import { es as i18n } from '../../i18n/es'` to Header (currently absent). Use `i18n.cart.headerLink` (already `'Carrito'`) for the label text so it is i18n-driven.
+- Keep all other Header markup identical.
+
+Note: `.site-header__link` already styles both links and buttons (see `theme.css`), so no new CSS needed.
 
 ---
 
-## Out of scope (do NOT do)
+## Task 6 — Remove inline add-to-cart feedback: `src/ui/pages/ProductDetailPage.tsx`
 
-- No new SQL migration (tables + RLS already exist).
-- No new route in `src/App.tsx`.
-- No renaming of existing `SupabaseCategoryRepository` methods.
-- No category management UI changes in `TabCategories.tsx` (assignment from the category side already works).
-- No `image_url` handling.
-- No new CSS files or theme tokens.
+The drawer auto-opening now provides the "added" feedback, so remove the redundant inline banner:
+- Remove the `addedFeedback` state (`const [addedFeedback, setAddedFeedback] = useState(false)`).
+- Remove the JSX block:
+  ```tsx
+  {addedFeedback && (
+    <p className="pdp__added-feedback" role="status">
+      {i18n.cart.added}
+    </p>
+  )}
+  ```
+- In the CTA `onClick`, remove `setAddedFeedback(true)` and the `setTimeout(...)` line. The handler becomes: after the guards, `await addToCart(selectedVariant.id, 1)` and nothing else (the context opens the drawer).
+- Leave the `i18n` import and everything else in the file unchanged (other `i18n.cart.*` usages remain).
 
-## Files (summary)
+---
 
-| Action | Path |
-| --- | --- |
-| Modify | `src/infrastructure/repositories/SupabaseCategoryRepository.ts` |
-| Modify | `src/ui/pages/ProductsPage.tsx` |
-| Modify | `src/ui/pages/admin/TabProducts.tsx` |
-| Modify | `src/i18n/es.ts` |
-| Modify | `src/ui/styles/catalog.css` |
+## Task 7 — i18n strings: `src/i18n/es.ts`
+
+Add to the `cart:` object (keep existing keys):
+```ts
+    close: 'Cerrar',
+    viewFull: 'Ver carrito completo',
+```
+`i18n.cart.added` may now be unused by ProductDetailPage but keep the key (do not delete). All other new UI text reuses existing keys: `title`, `empty`, `goShop`, `loginRequired`, `goLogin`, `remove`, `total`, `checkout`, `headerLink`, `increase`, `decrease`.
+
+---
+
+## Tests
+
+Follow existing patterns; do not over-test.
+
+1. `src/test/Header.test.tsx` currently mocks `useCart` returning `{ count, items, loading }`. Update that mock to also include `openDrawer: vi.fn()` (and the drawer fields if referenced) so Header renders. The cart trigger is now a `<button>`, not a link — if any existing assertion targets a "Carrito" link it must be updated; verify none do (current tests do not assert on the cart link, so likely only the mock needs the `openDrawer` addition). Ensure the mock object provides every field Header destructures.
+
+2. Optional new test `src/test/CartDrawer.test.tsx` (mirror `Header.test.tsx` mocking style — mock `useAuth` and `useCart`): render `<CartDrawer />` in `<MemoryRouter>`, and assert:
+   - With `isDrawerOpen: true`, `user` set, and a non-empty `items` array, the product name and `i18n.cart.total` render.
+   - With `items: []`, `i18n.cart.empty` renders.
+   Keep it minimal; only add if straightforward.
+
+Run the full test suite after changes; all existing tests must still pass.
+
+---
+
+## Patterns to copy from (named)
+- Line/stepper/remove/empty/total/checkout markup + price formatting: `src/ui/pages/CartPage.tsx`.
+- CSS tokens, BEM naming, border colors, responsive + reduced-motion blocks: `src/ui/styles/cart.css` and `src/ui/styles/theme.css`.
+- Context value shape and provider wiring: `src/ui/contexts/CartContext.tsx`.
+- Test mocking style: `src/test/Header.test.tsx`.

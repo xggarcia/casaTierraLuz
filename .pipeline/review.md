@@ -1,60 +1,75 @@
-# Review — Category filter (store) + Category assignment (admin)
+# Final Review: Cart Side Drawer (Mini-Cart)
 
-Reviewer: senior review stage
-Date: 2026-06-30
-Method: read spec/changes/test-results, full `git diff`, read of `SupabaseCategoryRepository.ts`, `Category.ts`, `ProductsPage.tsx` render block, `TabProducts.tsx`, and the test file; cross-checked i18n keys and CSS tokens.
+VERDICT: SHIP
 
-## VERDICT: SHIP WITH WARNINGS
+## Scope reviewed
+Full drawer feature across CartContext, CartDrawer, cart-drawer.css, App.tsx,
+Header.tsx, ProductDetailPage.tsx, es.ts, and the test files. Reviewed the
+actual current source (not just handoff claims) plus a full-suite run.
 
-Both features are implemented correctly and match the spec. The repository layer has real behavioral unit tests. The two warnings below are about test depth and unspecced scope creep, not about broken behavior.
+## Bug-fix re-verification (independent)
+CONFIRMED FIXED. `src/ui/contexts/CartContext.tsx` addToCart:
+- `!user` returns before the try (drawer stays closed). [line 58]
+- `clampedAdd < 1` returns inside the try before any write (drawer stays closed). [66-69]
+- `await cartRepository.addOrIncrement(...)` → `await refresh()` → `setIsDrawerOpen(true)`
+  are all INSIDE the try, in that order. [70-72]
+- The catch does `await refresh()` only and does NOT open the drawer. [73-78]
+So the drawer opens on the success path exclusively. The regression test
+"drawer stays closed when addOrIncrement throws" now asserts is-drawer-open === false
+and PASSES. Verified by running it.
 
----
+## Full suite (independently run)
+624 passing / 35 failing across 3 files. The 3 failing files are pre-existing and
+unrelated: admin-crud.test.ts (missing-file read), Header.test.tsx (asserts i18n
+nav labels the Header never rendered — predates this feature), wireframe-ui.test.tsx
+(expects ui-* / ui-spacer classes never implemented). None reference the drawer,
+CartContext drawer state, or the Header cart trigger. Failure count dropped 36→35
+vs the tester's paused run because the one intentionally-failing bug test now passes.
 
-## Correctness — PASS
+## Spec adherence
+Matches spec on every checked point: context value shape and wiring; CartDrawer
+always-rendered with `--open` modifier classes; role=dialog, aria-label, aria-hidden
+toggle; Escape + backdrop + close-button all call closeDrawer; body-scroll lock;
+login-fallback / empty / lines / footer branches; stepper, remove, view-full link,
+disabled checkout; price formatting `toFixed(2)&thinsp;€`; App.tsx mount position;
+Header Link→button with i18n.cart.headerLink; ProductDetailPage addedFeedback removed;
+i18n close/viewFull added. All i18n keys used by the drawer exist in es.ts.
 
-Feature 1 (catalog filter) and Feature 2 (admin assignment) both match the spec.
+## Accessibility / correctness notes (non-blocking; ship-acceptable, log for later)
+These do not violate the spec (the spec prescribes exactly this markup) and are not
+regressions, but a future a11y pass should consider them:
 
-- Repository: all four methods (`getAllActive`, `getCategoryIdsForProduct`, `setProductCategories`, `getProductCategoryMap`) match the spec to the letter. `setProductCategories` is correctly keyed by `product_id` (delete-then-insert), NOT `category_id`, so it cannot wipe a sibling product's assignments. Empty-set guard (`categoryIds.length > 0`) present. Existing methods untouched.
-- Data flow is correct. `productCategoryMap` is built directly from `product_categories` join rows keyed by `product_id`, so a product can only surface under a category it is actually assigned to. The `?? []` coalesce means a product with no categories appears only under "Todas" (never wrongly filtered in). "Todas" (`activeCategoryId === null`) returns `allProducts` unfiltered, so it can never show fewer than expected.
-- Pagination reset on filter change is correct: `handleFilter` sets `visibleCount = PAGE_SIZE` and `prevVisibleRef.current = PAGE_SIZE`. `visibleProducts` / `hasMore` / `remaining` all derive from `filteredProducts`, not `allProducts`.
-- Per-category empty state (lines 260-263) is inline inside `.catalog__container`; masthead (line 226) and filter nav (line 236) render above it unconditionally, so both stay visible. Matches edge case #2. The full-page `catalog-state` "no products at all" gate (line 200) is preserved.
-- Admin panel mirrors the variants panel: lazy-loaded in the same `Promise.all`, gated on `editingProductId !== null`, independent save, silent catch on load. `handleSaveCategories` guards `editing === 'new' || editing === null`.
+1. Off-screen-but-focusable when closed. The aside is always in the DOM, translated
+   off-screen via CSS transform, with aria-hidden={!isDrawerOpen}. aria-hidden hides
+   it from the a11y tree but does NOT remove its links/buttons from the tab order —
+   when closed, a keyboard user tabbing through the page can still land on the
+   (visually off-screen) close button, product links, stepper, etc. Additionally,
+   focusing a descendant of an aria-hidden="true" subtree is an ARIA violation (axe
+   flags this). Recommended future fix: add `inert` to the aside (or the whole
+   fragment) when !isDrawerOpen, or `visibility:hidden` on `.cart-drawer` until open.
+   Not blocking: matches spec, no test covers it, and pointer clicks can't reach it
+   off-screen — the gap is keyboard-tab focus only.
 
-## Type safety — PASS
+2. No focus management. Opening the drawer does not move focus into it, and closing
+   does not restore focus to the trigger; there is no focus trap. Spec did not require
+   these. Acceptable for ship as a lightweight mini-cart; note for a later a11y pass.
 
-No `any`. `Category` entity is properly typed. Casts in the repo (`data as ... DbCategory[]`, `as { category_id: number }[]`) match the established pattern in the same file's pre-existing methods. `tsc --noEmit` reported clean by the tester.
+3. role="dialog" without aria-modal="true". Minor; the spec's aria set was followed
+   verbatim. Consider adding aria-modal for a future pass.
 
-## i18n — PASS
+## Header Link→button change
+No navigation regression. The cart trigger was only ever rendered for logged-in users
+and now opens the drawer instead of routing to /carrito; /carrito remains reachable via
+the drawer's "Ver carrito completo" link and by direct URL. `.site-header__link` already
+styles buttons, so no visual regression. The one Header.test.tsx breakage is the
+pre-existing i18n-label mismatch, unrelated to this change (confirmed: those assertions
+target nav.products/login/register text, not the cart trigger).
 
-All four new keys present (`products.filterAll`, `products.filterEmpty`, `admin.categoriesTitle`, `admin.categoriesSave`). Other keys referenced by the new JSX (`i18n.loading`, `i18n.admin.saving`, `i18n.admin.saveError`, `i18n.admin.emptyList`) all exist. No missing-key risk.
+## Security / performance
+No issues. No new user-input rendering paths; product names go through the existing t()
+helper; images use existing src/placeholder logic. addToCart still clamps to stock and
+the catch reconciles via refresh() on write failure. No new network calls, no secrets,
+no unbounded work. CSS uses only existing tokens.
 
-## Security — PASS
-
-Repo layer correctly relies on RLS. `getProductCategoryMap` does an unfiltered public read of `product_categories` (allowed by the `Public read product_cat` policy). Writes go through `setProductCategories`, gated by `Admin manage product_cat` (is_admin()). No auth logic duplicated client-side. Correct.
-
-## Performance — PASS
-
-Single `Promise.all` on mount (no per-category round-trip). `filteredProducts` is an O(n) in-render derivation over a small catalog — acceptable. GSAP grid-entrance effect adds `activeCategoryId` to its deps as specced; no conflict with the `visibleCount` load-more effect.
-
----
-
-## WARNINGS
-
-### WARNING 1 — ProductsPage / TabProducts tests are source-string assertions, not behavioral
-`src/test/category-filter.test.ts` covers the repository with real mocked-Supabase behavioral tests (good), but every ProductsPage and TabProducts check is `expect(src).toContain(...)` / `toMatch(...)` against the raw file text (e.g. lines 384-467: `expect(src).toContain('filteredProducts.slice(')`). These assert the code *contains a string*, not that filtering, pagination reset, or the per-category empty state actually behave correctly. A future refactor that renames a variable would fail the test without any behavior change, and conversely a logic bug that preserved the strings would pass green. The 113 green count overstates real coverage for the two UI features. Recommend adding at least one render-level test (React Testing Library) that mounts `ProductsPage`, clicks a chip, and asserts the rendered grid shrinks — but this is not ship-blocking given the logic is simple and verified by reading.
-
-### WARNING 2 — Unspecced scope creep in the diff
-The diff includes changes the spec did not request and `changes.md` does not document:
-- `src/ui/pages/AdminPage.tsx` — new "Categorías" admin tab wired to a new `TabCategories`.
-- `src/ui/pages/admin/TabCategories.tsx` and `src/domain/entities/Category.ts` — new untracked files.
-- `src/i18n/es.ts` — extra keys beyond the four specced (`tabCategories`, `categoryNew`, `categoryAssignTitle`, `assign`).
-- `src/ui/pages/HomePage.tsx` — footer copy changed `España` -> `Barcelona` (unrelated to this feature).
-
-These compile clean and appear internally consistent, but they were not in scope, not in `changes.md`, and not covered by the test audit's focus areas. The `HomePage` footer edit in particular is an unrelated content change riding along in this PR. Recommend either documenting these in `changes.md` or splitting the `HomePage` footer change into its own commit. Not blocking, but a reviewer downstream should be aware the PR does more than the spec/changes describe.
-
----
-
-## SUGGESTION
-
-- ProductsPage per-category empty state uses inline `style={{...}}` (line 261) while the rest of the catalog uses CSS classes. Minor inconsistency; a `.catalog__filter-empty` class would match the file's convention. Cosmetic only.
-
+Ship it. The one paused bug is genuinely fixed and independently reverified; remaining
+suite failures are pre-existing and unrelated. Log the three a11y notes for a follow-up.
